@@ -1,0 +1,618 @@
+// PawMedics site builder.
+// Reads content/site.json (the ONE place to change clinic details) and writes the
+// finished website + app files into dist/. Run with:  node build.mjs
+// No packages to install: it uses only what comes with Node.js.
+
+import fs from "node:fs";
+import path from "node:path";
+import crypto from "node:crypto";
+
+const ROOT = path.dirname(new URL(import.meta.url).pathname);
+const OUT = path.join(ROOT, "dist");
+const SRC = path.join(ROOT, "src");
+const C = JSON.parse(fs.readFileSync(path.join(ROOT, "content", "site.json"), "utf8"));
+const clinic = C.clinic;
+const SITE = C.settings.siteUrl.replace(/\/$/, "");
+
+// ---------- helpers ----------
+const esc = (s = "") => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+const tel = `tel:${clinic.phoneInternational}`;
+const mail = `mailto:${clinic.email}`;
+const fullAddress = `${clinic.address.line1}, ${clinic.address.locality}, ${clinic.address.country}`;
+const fmtTime = (t) => { const [h, m] = t.split(":").map(Number); const ap = h >= 12 ? "pm" : "am"; const hh = h % 12 || 12; return m ? `${hh}:${String(m).padStart(2, "0")}${ap}` : `${hh}${ap}`; };
+const hoursText = (h) => (h.closed ? "Closed" : `${fmtTime(h.open)} – ${fmtTime(h.close)}`);
+const hoursSummary = () => {
+  const open = C.hours.filter((h) => !h.closed).map((h) => `${h.short} ${fmtTime(h.open)}–${fmtTime(h.close)}`);
+  const closed = C.hours.filter((h) => h.closed).map((h) => h.short);
+  return [...open, closed.length ? `${closed.join(" & ")} closed` : ""].filter(Boolean).join(" · ");
+};
+
+const ICONS = {
+  phone: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/>',
+  calendar: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+  pin: '<path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
+  mail: '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/>',
+  clock: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+  check: '<path d="M20 6 9 17l-5-5"/>',
+  arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+  menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  plane: '<path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>',
+  bug: '<path d="M8 2l1.9 1.9M16 2l-1.9 1.9M9 7.1V6a3 3 0 0 1 6 0v1.1M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6zM12 20v-9M6.5 13H3M21 13h-3.5M6 17l-3 2M18 17l3 2M6 9 3 7M18 9l3-2"/>',
+  paw: '<circle cx="5.5" cy="10" r="2"/><circle cx="9.5" cy="5.5" r="2"/><circle cx="14.5" cy="5.5" r="2"/><circle cx="18.5" cy="10" r="2"/><path d="M12 12c-3 0-5.5 3.5-5.5 6 0 1.7 1.3 2.5 3 2.5 1 0 1.6-.5 2.5-.5s1.5.5 2.5.5c1.7 0 3-.8 3-2.5 0-2.5-2.5-6-5.5-6z"/>',
+  download: '<path d="M12 3v12M7 10l5 5 5-5M5 21h14"/>',
+};
+const icon = (name, cls = "icon") => `<svg class="${cls}" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]}</svg>`;
+
+// Responsive photo: uses the 480px and 900px WebP files made from each photo.
+const photo = (name, alt, sizes, attrs = "") =>
+  `<img src="/assets/img/${name}-900.webp" srcset="/assets/img/${name}-480.webp 480w, /assets/img/${name}-900.webp 900w" sizes="${sizes}" alt="${esc(alt)}" ${attrs}>`;
+
+// ---------- shared page parts ----------
+// Logo and app icon: set in content/site.json ("logo"). Empty = placeholder paw.
+const BRAND = { logo: null, appIcon: null };
+let ASSET_V = "dev"; // replaced with a content hash so browsers and the app pick up changes
+
+function head({ title, description, pathName }) {
+  const url = SITE + pathName;
+  const jsonld = {
+    "@context": "https://schema.org",
+    "@type": "VeterinaryCare",
+    name: clinic.name,
+    url: SITE + "/",
+    telephone: clinic.phoneInternational,
+    email: clinic.email,
+    image: SITE + "/assets/img/acupuncture.jpg",
+    address: { "@type": "PostalAddress", streetAddress: clinic.address.line1, addressLocality: clinic.address.locality, addressCountry: clinic.address.countryCode },
+    openingHoursSpecification: C.hours.filter((h) => !h.closed && h.schemaDays).map((h) => ({ "@type": "OpeningHoursSpecification", dayOfWeek: h.schemaDays, opens: h.open, closes: h.close })),
+    sameAs: [clinic.facebookUrl],
+  };
+  return `<!doctype html>
+<html lang="${C.settings.language}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>${esc(title)}</title>
+<meta name="description" content="${esc(description)}">
+<link rel="canonical" href="${url}">
+<meta name="theme-color" content="${C.settings.themeColor}">
+<link rel="manifest" href="/manifest.webmanifest">
+${BRAND.appIcon ? `<link rel="icon" href="${esc(BRAND.appIcon)}">
+<link rel="apple-touch-icon" href="${esc(BRAND.appIcon)}">` : `<link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">`}
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="${esc(clinic.name)}">
+<meta property="og:type" content="website">
+<meta property="og:title" content="${esc(title)}">
+<meta property="og:description" content="${esc(description)}">
+<meta property="og:url" content="${url}">
+<meta property="og:image" content="${SITE}/assets/img/acupuncture.jpg">
+<link rel="preload" href="/assets/fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/montserrat-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/styles.css?v=${ASSET_V}">
+<script type="application/ld+json">${JSON.stringify(jsonld)}</script>
+</head>`;
+}
+
+function header(current) {
+  const link = (href, label, key) => `<a href="${href}"${current === key ? ' aria-current="page"' : ""}>${label}</a>`;
+  const links = [
+    link("/#services", "Services", "services"),
+    link("/acupuncture/", "Acupuncture", "acupuncture"),
+    link("/#pet-care", "Pet care", "petcare"),
+    link("/#team", "Our vets", "team"),
+    link("/#contact", "Contact", "contact"),
+  ].join("\n");
+  return `<a class="skip" href="#main">Skip to content</a>
+<div class="topbar">
+  <div class="wrap">
+    <div class="topbar__group">
+      <span>${icon("clock")}${esc(hoursSummary())}</span>
+      <a class="topbar__hide-sm" href="${esc(clinic.mapsUrl)}">${icon("pin")}${esc(clinic.address.line1)}, ${esc(clinic.address.locality)}</a>
+    </div>
+    <div class="topbar__group topbar__hide-sm">
+      <a href="${mail}">${icon("mail")}${esc(clinic.email)}</a>
+    </div>
+  </div>
+</div>
+<header class="header">
+  <div class="wrap">
+    <a class="brand" href="/" aria-label="${esc(clinic.name)} home">
+      ${BRAND.logo
+        ? `<img class="brand__logo" src="${esc(BRAND.logo)}" alt="${C.logo.showNameNextToLogo ? "" : esc(C.logo.alt)}">`
+        : `<img class="brand__mark" src="/assets/icons/favicon.svg" alt="" width="46" height="46">`}
+      ${C.logo.showNameNextToLogo || !BRAND.logo ? `<span><span class="brand__name">${esc(clinic.name)}</span><span class="brand__tag">${esc(clinic.tagline)}</span></span>` : ""}
+    </a>
+    <nav class="nav" aria-label="Main">
+${links}
+    </nav>
+    <div class="header__actions">
+      <a class="btn btn--outline" href="${tel}">${icon("phone")}${esc(clinic.phone)}</a>
+      <a class="btn btn--book" href="${esc(clinic.bookingUrl)}">${icon("calendar")}Book online</a>
+      <button class="menu-btn" type="button" aria-expanded="false" aria-controls="mobile-nav" aria-label="Open menu">${icon("menu")}</button>
+    </div>
+  </div>
+  <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile">
+${links}
+    <a href="${tel}">Call ${esc(clinic.phone)}</a>
+  </nav>
+</header>`;
+}
+
+function footer() {
+  const year = new Date().getFullYear();
+  return `<footer class="footer">
+  <div class="wrap">
+    <div class="footer__col" style="max-width: 360px">
+      <span class="footer__brand">${esc(clinic.name)}</span>
+      <span>Compassionate veterinary care in ${esc(clinic.address.locality)}. Part of the Vetcare family with ${esc(C.sisterClinic.name)}, ${esc(C.sisterClinic.place)}.</span>
+    </div>
+    <div class="footer__col">
+      <span class="footer__title">Visit</span>
+      <span>${esc(clinic.address.line1)}, ${esc(clinic.address.locality)}</span>
+      <a href="${tel}">${esc(clinic.phone)}</a>
+      <a href="${mail}">${esc(clinic.email)}</a>
+    </div>
+    <div class="footer__col">
+      <span class="footer__title">Opening hours</span>
+      ${C.hours.map((h) => `<span>${esc(h.days)}: ${hoursText(h)}</span>`).join("\n      ")}
+    </div>
+    <div class="footer__col">
+      <span class="footer__title">More</span>
+      <a href="${esc(clinic.bookingUrl)}">Book online</a>
+      <a href="${esc(clinic.facebookUrl)}">Facebook</a>
+      <a href="/privacy/">Privacy</a>
+      <button class="btn btn--ghost install-btn" type="button" hidden>${icon("download")}Install the app</button>
+    </div>
+  </div>
+  <div class="footer__legal"><div class="wrap"><span>© ${year} ${esc(clinic.legalName)}</span><span>${esc(SITE.replace(/^https?:\/\//, ""))}</span></div></div>
+</footer>
+<div class="action-bar" role="region" aria-label="Quick actions">
+  <a class="btn btn--primary" href="${tel}">${icon("phone")}Call</a>
+  <a class="btn btn--book" href="${esc(clinic.bookingUrl)}">${icon("calendar")}Book online</a>
+</div>
+<script src="/app.js?v=${ASSET_V}" defer></script>
+</body>
+</html>`;
+}
+
+const page = (meta, current, main) => `${head(meta)}
+<body data-install="${C.settings.showInstallButton ? "on" : "off"}">
+${header(current)}
+<main id="main">
+${main}
+</main>
+${footer()}`;
+
+// ---------- the Vet / Not Vets photo pair ----------
+// Drawn on a fixed 380 x 352 grid; the box keeps that shape at every screen size,
+// so the arrow tips always stop just short of each head.
+function vetsPair() {
+  const [a, t] = C.vets;
+  const P = "#52215F", O = "#B5501F";
+  const arrows = [
+    [P, "M22 34 C 24 50, 36 60, 52 61", "M42 55 L 52 61 L 42 66"],
+    [O, "M170 36 C 160 62, 138 84, 126 104", "M135 98 L 126 104 L 127 93"],
+    [O, "M212 36 C 222 72, 239 114, 242 147", "M246 137 L 242 147 L 236 137"],
+    [P, "M356 34 C 354 50, 342 60, 326 61", "M336 55 L 326 61 L 336 65"],
+  ];
+  const paths = arrows.map(([c, d, h]) => [["#FFFFFF", 6], [c, 2.6]].map(([col, w]) =>
+    `<path d="${d}" stroke="${col}" stroke-width="${w}"/><path d="${h}" stroke="${col}" stroke-width="${w}" stroke-linejoin="round"/>`).join("")).join("");
+  const label = (x, anchor, rot, color, text) => `<text x="${x}" y="27" text-anchor="${anchor}" transform="rotate(${rot} ${x} 20)" fill="${color}" font-family="Caveat, cursive" font-weight="700" font-size="30">${text}</text>`;
+  return `<div class="vets-pair">
+  <div class="vets-pair__stage">
+    <figure class="vets-pair__photo vets-pair__photo--left">${photo(a.photo, a.photoAlt, "(max-width: 760px) 45vw, 230px", 'fetchpriority="high"')}</figure>
+    <figure class="vets-pair__photo vets-pair__photo--right">${photo(t.photo, t.photoAlt, "(max-width: 760px) 45vw, 230px", 'fetchpriority="high"')}</figure>
+    <svg class="vets-pair__arrows" viewBox="0 0 380 352" aria-hidden="true" fill="none" stroke-linecap="round">${paths}${label(6, "start", -6, P, "Vet")}${label(190, "middle", -2, O, "Not Vets")}${label(374, "end", 6, P, "Vet")}</svg>
+  </div>
+  <div class="vets-pair__names"><span>${esc(a.name)}</span><span>${esc(t.name)}</span></div>
+</div>`;
+}
+
+// ---------- pages ----------
+function homePage() {
+  const ac = C.acupuncture;
+  const main = `<section class="hero">
+  <div class="wrap">
+    <div class="hero__copy">
+      <span class="pill">${esc(C.hero.eyebrow)}</span>
+      <h1>${esc(C.hero.title)}</h1>
+      <p>${esc(C.hero.text)}</p>
+      <div class="btn-row">
+        <a class="btn btn--book btn--lg" href="${esc(clinic.bookingUrl)}">${icon("calendar")}Book an appointment</a>
+        <a class="btn btn--primary btn--lg" href="${tel}">${icon("phone")}Call ${esc(clinic.phone)}</a>
+      </div>
+      <div class="trust">
+        <span>${icon("check")}${esc(clinic.facebookRating)}</span>
+        <span>${icon("check")}Sister clinic to ${esc(C.sisterClinic.name.replace(" Animal Clinic", ""))}, ${esc(C.sisterClinic.place)}</span>
+      </div>
+    </div>
+    ${vetsPair()}
+  </div>
+</section>
+
+<section class="quick" aria-label="Quick actions">
+  <div class="wrap quick__grid">
+    <a href="${esc(clinic.bookingUrl)}"><span class="quick__icon quick__icon--book">${icon("calendar")}</span><span><strong>Book online</strong><small>Pick a time that suits you</small></span></a>
+    <a href="${tel}"><span class="quick__icon">${icon("phone")}</span><span><strong>Call ${esc(clinic.phone)}</strong><small>Speak to the clinic</small></span></a>
+    <a href="${esc(clinic.mapsUrl)}"><span class="quick__icon">${icon("pin")}</span><span><strong>Get directions</strong><small>${esc(clinic.address.locality)}, ${esc(clinic.address.country)}</small></span></a>
+    <a href="${mail}"><span class="quick__icon">${icon("mail")}</span><span><strong>Email us</strong><small>${esc(clinic.email)}</small></span></a>
+  </div>
+</section>
+
+<section class="section" id="acupuncture">
+  <div class="wrap">
+    <div class="feature">
+      <div class="feature__copy">
+        <span class="eyebrow">Featured service</span>
+        <h2>Veterinary acupuncture with ${esc(C.vets[1].name)}</h2>
+        <p>${esc(ac.homeTeaser)}</p>
+        <ul class="ticks">${ac.helpsWith.map((x) => `<li>${icon("check")}${esc(x)}</li>`).join("")}</ul>
+        <div class="btn-row">
+          <a class="btn btn--book" href="${esc(clinic.bookingUrl)}">Book an acupuncture session</a>
+          <a class="btn btn--ghost" href="/acupuncture/">How acupuncture works ${icon("arrow")}</a>
+        </div>
+      </div>
+      ${photo(ac.photo, ac.photoAlt, "(max-width: 760px) 92vw, 480px", 'loading="lazy"')}
+    </div>
+  </div>
+</section>
+
+<section class="section" id="services" style="padding-top: 24px">
+  <div class="wrap">
+    <div class="section-head">
+      <div><h2>Our services</h2><p>Everything your dog, cat or small pet needs, from the first puppy jab to care in later life.</p></div>
+      <a href="${esc(clinic.bookingUrl)}" style="font-weight: 600">Book any service →</a>
+    </div>
+    <div class="grid grid--services">
+${C.services.filter((s) => s.show !== false).map((s) => `      <div class="card${s.featured ? " card--featured" : ""}"><h3>${esc(s.title)}</h3><p>${esc(s.text)}</p>${s.link ? `<a href="${esc(s.link)}">Learn more →</a>` : ""}</div>`).join("\n")}
+    </div>
+  </div>
+</section>
+
+<section class="section section--cream" id="pet-care">
+  <div class="wrap">
+    <div class="section-head"><div><h2>Pet care in Malta</h2><p>Malta's climate brings its own challenges. These are the ones we're asked about most.</p></div></div>
+    <div class="grid grid--tips">
+${C.maltaTips.map((t) => `      <div class="card card--plain">${icon(t.icon, "card__icon")}<h3>${esc(t.title)}</h3><p>${esc(t.text)}</p></div>`).join("\n")}
+    </div>
+  </div>
+</section>
+
+<section class="section" id="team">
+  <div class="wrap">
+    <div class="section-head"><div><h2>Meet our vets</h2></div></div>
+    <div class="grid grid--two">
+${C.vets.map((v) => `      <div class="vet">${photo(v.photo, v.name, "112px", 'loading="lazy"')}<div><h3>${esc(v.name)}</h3><span class="vet__role">${esc(v.role)}</span>${v.bio ? `<p>${esc(v.bio)}</p>` : ""}</div></div>`).join("\n")}
+    </div>
+  </div>
+</section>
+
+<section class="section section--tint">
+  <div class="wrap">
+    <div class="section-head"><div><h2>Two clinics, one team</h2><p>${esc(clinic.name)} and ${esc(C.sisterClinic.name)} are both run by ${C.vets.map((v) => esc(v.name)).join(" and ")}, so you can visit whichever is nearer.</p></div></div>
+    <div class="grid grid--two">
+      <div class="clinic clinic--here"><span class="eyebrow">You are here</span><h3>${esc(clinic.name)}, ${esc(clinic.address.locality)}</h3><p>${esc(clinic.address.line1)}, ${esc(clinic.address.locality)}<br>${esc(clinic.phone)} · ${esc(clinic.email)}</p><a href="${esc(clinic.bookingUrl)}">Book at ${esc(clinic.name)} →</a></div>
+      <div class="clinic"><span class="eyebrow">${esc(C.sisterClinic.badge)}</span><h3>${esc(C.sisterClinic.name)}, ${esc(C.sisterClinic.place)}</h3><p>${esc(C.sisterClinic.address)}<br>${esc(C.sisterClinic.phone)} · ${esc(C.sisterClinic.email)}</p><a href="${esc(C.sisterClinic.url)}">Visit ${esc(C.sisterClinic.name.replace(" Animal Clinic", ""))} →</a></div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap faq">
+    <h2 style="margin-bottom: 24px">Common questions</h2>
+${C.faq.map((f, i) => `    <details${i === 0 ? " open" : ""}><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join("\n")}
+  </div>
+</section>
+
+<section class="section" id="contact" style="padding-top: 0">
+  <div class="wrap contact">
+    <div class="contact__panel">
+      <h2>Ready when you are</h2>
+      <p>${esc(clinic.name)}, ${esc(fullAddress)}</p>
+      <a class="contact__phone" href="${tel}">${esc(clinic.phone)}</a>
+      <a href="${mail}">${esc(clinic.email)}</a>
+      <dl class="hours">${C.hours.map((h) => `<dt>${esc(h.days)}</dt><dd>${hoursText(h)}</dd>`).join("")}</dl>
+      <div class="btn-row"><a class="btn btn--book" href="${esc(clinic.bookingUrl)}">${icon("calendar")}Book online</a></div>
+    </div>
+    <div class="map-card">
+      ${icon("pin")}
+      <h3>Find us in ${esc(clinic.address.locality)}</h3>
+      <p>${esc(fullAddress)}</p>
+      <a class="btn btn--primary" href="${esc(clinic.mapsUrl)}">Open in Google Maps</a>
+    </div>
+  </div>
+</section>`;
+  return page({ title: `${clinic.name} | Vet clinic in ${clinic.address.locality}, Malta`, description: clinic.description, pathName: "/" }, "home", main);
+}
+
+function acupuncturePage() {
+  const ac = C.acupuncture;
+  const teresa = C.vets[1];
+  const fees = ac.fees && ac.fees.length
+    ? `<div class="fees"><h2 style="font-size: 1.6rem">Fees</h2>${ac.fees.map((f) => `<div class="fees__row"><span>${esc(f.label)}</span><strong>${esc(f.price)}</strong></div>`).join("")}<a class="btn btn--book" href="${esc(clinic.bookingUrl)}">Book now</a></div>`
+    : "";
+  const main = `<section class="page-hero">
+  <div class="wrap">
+    <div class="page-hero__copy">
+      <span class="crumbs"><a href="/">Home</a> / Acupuncture</span>
+      <h1>${esc(ac.title)}</h1>
+      <p>${esc(ac.intro)}</p>
+      <div class="btn-row">
+        <a class="btn btn--book btn--lg" href="${esc(clinic.bookingUrl)}">Book an acupuncture consultation</a>
+        <a class="btn btn--ghost btn--lg" href="${tel}">Ask us first: ${esc(clinic.phone)}</a>
+      </div>
+    </div>
+    ${photo(ac.photo, ac.photoAlt, "(max-width: 760px) 92vw, 520px", 'fetchpriority="high"')}
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap split">
+    <div class="prose"><h2>What is veterinary acupuncture?</h2>${ac.whatIsIt.map((p) => `<p>${esc(p)}</p>`).join("")}</div>
+    <div class="split__panel"><h3 style="font-size: 1.35rem">Often used to help with</h3><ul class="ticks ticks--stack">${ac.helpsWith.map((x) => `<li>${icon("check")}${esc(x)}</li>`).join("")}</ul></div>
+  </div>
+</section>
+
+<section class="section" style="padding-top: 0">
+  <div class="wrap">
+    <h2 style="margin-bottom: 28px">How it works</h2>
+    <ol class="steps">${ac.steps.map((s) => `<li><h3>${esc(s.title)}</h3><p>${esc(s.text)}</p></li>`).join("")}</ol>
+  </div>
+</section>
+
+<section class="section section--tint">
+  <div class="wrap profile">
+    ${photo(teresa.photo, teresa.photoAlt, "(max-width: 760px) 92vw, 440px", 'loading="lazy"')}
+    <div class="prose">
+      <span class="eyebrow">Your acupuncturist</span>
+      <h2>${esc(teresa.name)}</h2>
+      <p>${esc(teresa.role)}</p>
+      ${teresa.bio ? `<p>${esc(teresa.bio)}</p>` : ""}
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap ${fees ? "split" : ""}">
+    ${fees}
+    <div class="faq" style="max-width: none">
+      <h2 style="margin-bottom: 20px">Acupuncture questions</h2>
+${ac.faq.map((f, i) => `      <details${i === 0 ? " open" : ""}><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join("\n")}
+    </div>
+  </div>
+</section>
+
+<section class="cta-band">
+  <div class="wrap">
+    <div><h2>Wondering if acupuncture could help?</h2><p>${esc(clinic.name)} · ${esc(clinic.address.line1)}, ${esc(clinic.address.locality)} · ${esc(clinic.email)}</p></div>
+    <div class="btn-row"><a class="btn btn--book btn--lg" href="${esc(clinic.bookingUrl)}">Book online</a><a class="btn btn--ghost btn--lg" href="${tel}">Call ${esc(clinic.phone)}</a></div>
+  </div>
+</section>`;
+  return page({ title: `Veterinary acupuncture in Malta | ${clinic.name}`, description: ac.intro, pathName: "/acupuncture/" }, "acupuncture", main);
+}
+
+function privacyPage() {
+  const main = `<div class="wrap text-page">
+  <h1>Privacy</h1>
+  <p>This website does not use cookies, analytics or advertising trackers, and it does not collect personal information. Fonts and images are served from this website itself.</p>
+  <h2>Booking appointments</h2>
+  <p>Online bookings are handled by our booking system, Provet Cloud, at <a href="${esc(clinic.bookingUrl)}">${esc(clinic.bookingUrl.replace(/^https?:\/\//, ""))}</a>. Information you enter there is processed under Provet's privacy policy and ours as your veterinary practice.</p>
+  <h2>Installing the app</h2>
+  <p>If you add ${esc(clinic.name)} to your home screen, your phone stores copies of these pages so they open quickly and work offline. No personal data is stored.</p>
+  <h2>Contact</h2>
+  <p>For any privacy question, email <a href="${mail}">${esc(clinic.email)}</a> or call <a href="${tel}">${esc(clinic.phone)}</a>.</p>
+</div>`;
+  return page({ title: `Privacy | ${clinic.name}`, description: `How ${clinic.name} handles your information.`, pathName: "/privacy/" }, "privacy", main);
+}
+
+function simplePage(title, body, pathName) {
+  return page({ title: `${title} | ${clinic.name}`, description: clinic.description, pathName }, "", `<div class="wrap text-page">${body}</div>`);
+}
+
+function bookRedirect() {
+  // Short link used by the app's "Book" shortcut: /book/ forwards to the booking system.
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Booking…</title><meta name="robots" content="noindex"><meta http-equiv="refresh" content="0; url=${esc(clinic.bookingUrl)}"><script>location.replace(${JSON.stringify(clinic.bookingUrl)})</script></head><body><p><a href="${esc(clinic.bookingUrl)}">Continue to online booking</a></p></body></html>`;
+}
+
+// ---------- app files ----------
+function manifest() {
+  return JSON.stringify({
+    name: `${clinic.name} Vet Clinic`,
+    short_name: clinic.name,
+    description: clinic.description,
+    id: "/",
+    start_url: "/?source=app",
+    scope: "/",
+    display: "standalone",
+    orientation: "portrait",
+    background_color: "#FFFFFF",
+    theme_color: C.settings.themeColor,
+    lang: C.settings.language,
+    categories: ["health", "lifestyle", "medical"],
+    icons: BRAND.appIcon
+      ? [
+          { src: BRAND.appIcon, sizes: "192x192", purpose: "any" },
+          { src: BRAND.appIcon, sizes: "512x512", purpose: "any" },
+        ]
+      : [
+          { src: "/assets/icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+          { src: "/assets/icons/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+          { src: "/assets/icons/maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+        ],
+    shortcuts: [
+      { name: "Book an appointment", short_name: "Book", url: "/book/", icons: [{ src: BRAND.appIcon || "/assets/icons/icon-192.png", sizes: "192x192" }] },
+      { name: "Acupuncture", short_name: "Acupuncture", url: "/acupuncture/", icons: [{ src: BRAND.appIcon || "/assets/icons/icon-192.png", sizes: "192x192" }] },
+    ],
+  }, null, 2);
+}
+
+function serviceWorker(version, precache) {
+  return `// PawMedics service worker — lets the site install as an app and open offline.
+// VERSION changes automatically every time the site is rebuilt, so phones pick up updates.
+const VERSION = ${JSON.stringify(version)};
+const CACHE = "pawmedics-" + VERSION;
+const PRECACHE = ${JSON.stringify(precache)};
+
+self.addEventListener("install", (event) => {
+  event.waitUntil(caches.open(CACHE).then((c) => c.addAll(PRECACHE)).then(() => self.skipWaiting()));
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) => Promise.all(keys.filter((k) => k.startsWith("pawmedics-") && k !== CACHE).map((k) => caches.delete(k))))
+      .then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener("fetch", (event) => {
+  const req = event.request;
+  if (req.method !== "GET") return;
+  const url = new URL(req.url);
+  if (url.origin !== self.location.origin) return; // booking system, maps etc. go straight to the network
+
+  // Pages: try the network first so changes show straight away; fall back to the saved copy, then the offline page.
+  if (req.mode === "navigate") {
+    event.respondWith(
+      fetch(req).then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE).then((c) => c.put(req, copy));
+        return res;
+      }).catch(() => caches.match(req, { ignoreSearch: true }).then((hit) => hit || caches.match("/offline/")))
+    );
+    return;
+  }
+
+  // Styles, fonts, images: use the saved copy, fetch and save it if missing.
+  event.respondWith(
+    caches.match(req).then((hit) => hit || fetch(req).then((res) => {
+      if (res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); }
+      return res;
+    }))
+  );
+});
+`;
+}
+
+const appJs = () => `// Small helpers: mobile menu, app install, offline support.
+(function () {
+  var btn = document.querySelector(".menu-btn");
+  var nav = document.getElementById("mobile-nav");
+  if (btn && nav) {
+    btn.addEventListener("click", function () {
+      var open = nav.classList.toggle("is-open");
+      btn.setAttribute("aria-expanded", open ? "true" : "false");
+      btn.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+    });
+    nav.addEventListener("click", function (e) { if (e.target.tagName === "A") { nav.classList.remove("is-open"); btn.setAttribute("aria-expanded", "false"); } });
+  }
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () { navigator.serviceWorker.register("/sw.js").catch(function () {}); });
+  }
+
+  // "Install the app" button — only appears when showInstallButton is true in content/site.json
+  if (document.body.dataset.install === "on") {
+    var deferred = null;
+    var installBtns = document.querySelectorAll(".install-btn");
+    window.addEventListener("beforeinstallprompt", function (e) {
+      e.preventDefault(); deferred = e;
+      installBtns.forEach(function (b) { b.hidden = false; });
+    });
+    installBtns.forEach(function (b) {
+      b.addEventListener("click", function () {
+        if (!deferred) return;
+        deferred.prompt();
+        deferred.userChoice.finally(function () { deferred = null; installBtns.forEach(function (x) { x.hidden = true; }); });
+      });
+    });
+  }
+})();
+`;
+
+// ---------- build ----------
+function copyDir(from, to) {
+  fs.mkdirSync(to, { recursive: true });
+  for (const e of fs.readdirSync(from, { withFileTypes: true })) {
+    const s = path.join(from, e.name), d = path.join(to, e.name);
+    e.isDirectory() ? copyDir(s, d) : fs.copyFileSync(s, d);
+  }
+}
+function write(rel, data) {
+  const p = path.join(OUT, rel);
+  fs.mkdirSync(path.dirname(p), { recursive: true });
+  fs.writeFileSync(p, data);
+}
+function walk(dir, base = dir) {
+  return fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+    const p = path.join(dir, e.name);
+    return e.isDirectory() ? walk(p, base) : [path.relative(base, p).split(path.sep).join("/")];
+  });
+}
+
+fs.rmSync(OUT, { recursive: true, force: true });
+copyDir(path.join(SRC, "assets"), path.join(OUT, "assets"));
+
+// Fetch the logo / app icon from their links (e.g. ImgBB) and save copies inside the site,
+// so visitors never load anything from ImgBB and the app still shows the logo offline.
+async function saveRemoteImage(url, baseName) {
+  if (!url) return null;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const type = (res.headers.get("content-type") || "").split(";")[0];
+    const ext = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "image/svg+xml": "svg", "image/gif": "gif" }[type];
+    if (!ext) throw new Error("not an image (" + type + ") — use the ImgBB *direct* link");
+    const rel = `assets/brand/${baseName}.${ext}`;
+    fs.mkdirSync(path.join(OUT, "assets", "brand"), { recursive: true });
+    fs.writeFileSync(path.join(OUT, rel), Buffer.from(await res.arrayBuffer()));
+    console.log(`Saved ${baseName} from ${url}`);
+    return "/" + rel;
+  } catch (err) {
+    console.warn(`Warning: couldn't download ${baseName} (${err.message}). Linking to it directly instead.`);
+    return url;
+  }
+}
+const logoCfg = C.logo || {};
+BRAND.logo = await saveRemoteImage((logoCfg.url || "").trim(), "logo");
+BRAND.appIcon = await saveRemoteImage((logoCfg.appIconUrl || "").trim(), "app-icon");
+
+const css = fs.readFileSync(path.join(SRC, "styles.css"), "utf8");
+const js = appJs();
+// Version = fingerprint of the content + code, so any change produces a new version.
+ASSET_V = crypto.createHash("sha256")
+  .update(JSON.stringify(C)).update(css).update(js).update(fs.readFileSync(new URL(import.meta.url)))
+  .digest("hex").slice(0, 10);
+
+write("styles.css", css);
+write("app.js", js);
+write("index.html", homePage());
+write("acupuncture/index.html", acupuncturePage());
+write("privacy/index.html", privacyPage());
+write("offline/index.html", simplePage("You're offline", `<h1>You're offline</h1><p>We can't load this page without an internet connection. You can still call us on <a href="${tel}">${esc(clinic.phone)}</a>.</p><p style="margin-top: 16px"><strong>Opening hours</strong><br>${C.hours.map((h) => `${esc(h.days)}: ${hoursText(h)}`).join("<br>")}</p>`, "/offline/"));
+write("404.html", simplePage("Page not found", `<h1>Page not found</h1><p>Sorry, that page doesn't exist. <a href="/">Go to the home page</a> or <a href="${esc(clinic.bookingUrl)}">book an appointment</a>.</p>`, "/404"));
+write("book/index.html", bookRedirect());
+write("manifest.webmanifest", manifest());
+write("robots.txt", `User-agent: *\nAllow: /\n\nSitemap: ${SITE}/sitemap.xml\n`);
+write("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${["/", "/acupuncture/", "/privacy/"].map((u) => `  <url><loc>${SITE}${u}</loc></url>`).join("\n")}\n</urlset>\n`);
+// Hosting rules (Netlify and Cloudflare Pages both read this file)
+write("_headers", `/sw.js
+  Cache-Control: no-cache
+/manifest.webmanifest
+  Content-Type: application/manifest+json
+/assets/*
+  Cache-Control: public, max-age=604800
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+`);
+
+const precache = ["/", "/acupuncture/", "/privacy/", "/offline/", `/styles.css?v=${ASSET_V}`, `/app.js?v=${ASSET_V}`, "/manifest.webmanifest",
+  ...walk(path.join(OUT, "assets")).filter((f) => !f.endsWith(".txt") && !f.endsWith(".jpg")).map((f) => "/assets/" + f)];
+write("sw.js", serviceWorker(ASSET_V, precache));
+
+console.log(`Built ${clinic.name} site → dist/  (version ${ASSET_V}, ${walk(OUT).length} files)`);
