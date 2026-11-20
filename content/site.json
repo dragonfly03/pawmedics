@@ -1,0 +1,269 @@
+{
+  "_howTo": {
+    "readMe": "This file holds ALL the clinic details for the website and the app. Full guide: README.md (section 4). This _howTo section is ignored by the website, so it is safe to leave here.",
+    "editingRules": "Only change text INSIDE the quotes \"...\". Keep quotes, colons and commas. true/false have no quotes. When adding a list item, copy an existing { ... } item and put a comma between items but not after the last one. Check the file at jsonlint.com before publishing. If the file has a mistake, the build stops and the live site stays as it was.",
+    "settings": "showInstallButton: false for now; true shows an \"Install the app\" button (app phase). themeColor = colour of the phone top bar in the app.",
+    "logo": "Upload the logo to imgbb.com, open it, choose \"Direct links\" and paste the link that starts with https://i.ibb.co/ (ending .png or .jpg) into logo.url. The normal https://ibb.co/ page link will NOT work. For the phone app icon, upload a SQUARE 512 x 512 PNG and paste its direct link into logo.appIconUrl. Set showNameNextToLogo to false if the logo already contains the name. alt = description for screen readers. Leave fields empty (\"\") to keep the placeholder paw. The build saves a copy of the images inside the site; if it cannot download them (wrong link, or built somewhere without internet access, e.g. by Claude), it still finishes and links to ImgBB directly instead (works, but not offline).",
+    "clinic": "phone = how the number is shown; phoneInternational = what phones dial (keep +356). facebookRating is shown exactly as written, so update it now and then.",
+    "hours": "24-hour times, e.g. \"19:00\" (shown as 7pm). For a closed day use \"closed\": true. schemaDays = English day names the row covers (used by Google). Hours appear in the top bar, contact section, footer and offline page.",
+    "emergency": "The same message also appears in the first FAQ and in the \"Summer heat\" tip; update those too if it changes.",
+    "vets": "Keep Dr. Andrew FIRST and Dr. Teresa SECOND: the home-page photo pair with the \"Vet / Not Vets\" arrows and the acupuncture page depend on this order. Type a short bio in \"bio\"; an empty bio is hidden. photo = image name in src/assets/img. If a photo is replaced, ask Claude to redraw the arrows.",
+    "services": "\"show\": true/false shows or hides a service (set false for anything the Swatar clinic does not offer). \"featured\": true = purple outline. \"link\" adds a \"Learn more\" link.",
+    "maltaTips": "icon can be bug, sun, plane or paw.",
+    "faq": "Home-page questions; the first one is shown open.",
+    "acupuncture": "homeTeaser = text in the home-page acupuncture block. fees is empty, so no fees box shows. Add rows like { \"label\": \"Initial consultation\", \"price\": \"€XX\" } and the fees box appears automatically with a Book button."
+  },
+  "settings": {
+    "siteUrl": "https://pawmedicsmalta.com",
+    "language": "en",
+    "showInstallButton": false,
+    "themeColor": "#52215F"
+  },
+  "logo": {
+    "url": "",
+    "appIconUrl": "",
+    "alt": "PawMedics logo",
+    "showNameNextToLogo": true
+  },
+  "clinic": {
+    "name": "PawMedics",
+    "legalName": "PawMedics Limited",
+    "tagline": "Veterinary clinic · part of the Vetcare family",
+    "description": "Small-animal vets in Swatar, Malta. Consultations, vaccinations, surgery, diagnostics and veterinary acupuncture. Book online.",
+    "phone": "2133 5793",
+    "phoneInternational": "+35621335793",
+    "email": "info@pawmedics.mt",
+    "address": {
+      "line1": "42, Triq Ġużepp Xuereb",
+      "locality": "Swatar",
+      "country": "Malta",
+      "countryCode": "MT"
+    },
+    "mapsUrl": "https://www.google.com/maps/search/?api=1&query=PawMedics+42+Triq+Guzepp+Xuereb+Swatar+Malta",
+    "bookingUrl": "https://my.provet.com/pawmedics-limited",
+    "facebookUrl": "https://www.facebook.com/vetsmalta",
+    "facebookRating": "100% recommend on Facebook (12 reviews)"
+  },
+  "hours": [
+    {
+      "days": "Monday – Friday",
+      "short": "Mon–Fri",
+      "open": "08:00",
+      "close": "19:00",
+      "schemaDays": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday"
+      ]
+    },
+    {
+      "days": "Saturday",
+      "short": "Sat",
+      "open": "08:00",
+      "close": "12:00",
+      "schemaDays": [
+        "Saturday"
+      ]
+    },
+    {
+      "days": "Sunday",
+      "short": "Sun",
+      "closed": true
+    },
+    {
+      "days": "Public holidays",
+      "short": "Public holidays",
+      "closed": true
+    }
+  ],
+  "emergency": {
+    "text": "We don't run an out-of-hours service. During opening hours, call us and come straight in. When we're closed, please go to the government's National Veterinary Emergency Service clinic in Reggie Miller Square, Fgura."
+  },
+  "sisterClinic": {
+    "name": "Vetcare Animal Clinic",
+    "place": "San Ġwann",
+    "badge": "Sister clinic · 30+ years",
+    "address": "Misraħ Lourdes, San Ġwann SGN 2010",
+    "phone": "2137 3277",
+    "email": "info@vetcare.mt",
+    "url": "https://www.vetcaremalta.com"
+  },
+  "hero": {
+    "eyebrow": "Small-animal vets in Swatar, Malta",
+    "title": "Gentle, thorough care for the pets you love",
+    "text": "Consultations, vaccinations, surgery and diagnostics, together with veterinary acupuncture with Dr. Teresa Gatt. Book online in under a minute."
+  },
+  "vets": [
+    {
+      "name": "Dr. Andrew Cachia",
+      "role": "Partner · Veterinary surgeon",
+      "bio": "",
+      "photo": "dr-andrew",
+      "photoAlt": "Dr. Andrew Cachia with a black-and-white dog on the examination table"
+    },
+    {
+      "name": "Dr. Teresa Gatt",
+      "role": "Partner · Veterinary surgeon · TCVM acupuncture",
+      "bio": "",
+      "photo": "dr-teresa",
+      "photoAlt": "Dr. Teresa Gatt cuddling a fluffy puppy"
+    }
+  ],
+  "services": [
+    {
+      "show": true,
+      "title": "Consultations & second opinions",
+      "text": "Check-ups and examinations, plus a second opinion on a diagnosis or treatment plan."
+    },
+    {
+      "show": true,
+      "title": "Vaccinations & check-ups",
+      "text": "Puppy and kitten courses, yearly boosters and wellness checks."
+    },
+    {
+      "show": true,
+      "title": "Microchipping & pet passports",
+      "text": "Microchips, EU pet passports and health certificates for travel."
+    },
+    {
+      "show": true,
+      "title": "Flea, tick & parasite control",
+      "text": "Year-round prevention plans, including protection against sandflies and leishmaniasis."
+    },
+    {
+      "show": true,
+      "title": "Nutritional advice",
+      "text": "Diet and weight plans for every age, breed and health need."
+    },
+    {
+      "show": true,
+      "title": "Neutering & spaying",
+      "text": "Routine neutering for dogs and cats, with aftercare guidance."
+    },
+    {
+      "show": true,
+      "title": "Surgery & procedures",
+      "text": "Soft-tissue surgery, lump removals and other procedures."
+    },
+    {
+      "show": true,
+      "title": "Dentistry",
+      "text": "Dental checks, scale and polish, and extractions."
+    },
+    {
+      "show": true,
+      "title": "X-ray & ultrasound",
+      "text": "Diagnostic imaging to find answers quickly."
+    },
+    {
+      "show": true,
+      "title": "In-house laboratory",
+      "text": "Blood, urine and faecal tests, so results don't take days."
+    },
+    {
+      "show": true,
+      "title": "Behaviour support",
+      "text": "Help with anxiety, aggression or sudden changes in behaviour."
+    },
+    {
+      "show": true,
+      "title": "Acupuncture (TCVM)",
+      "text": "Drug-free support for pain and mobility with Dr. Teresa Gatt.",
+      "featured": true,
+      "link": "/acupuncture/"
+    },
+    {
+      "show": true,
+      "title": "At-home euthanasia",
+      "text": "A peaceful goodbye in familiar surroundings. Please call us to arrange."
+    }
+  ],
+  "maltaTips": [
+    {
+      "icon": "bug",
+      "title": "Sandflies & leishmaniasis",
+      "text": "Sandflies spread leishmaniasis to dogs in Malta. Ask us about repellent collars, vaccination and yearly screening before the warm months."
+    },
+    {
+      "icon": "sun",
+      "title": "Summer heat",
+      "text": "Walk early or late, check pavements with your hand and never leave a pet in a car. Heavy panting or collapse is an emergency: call us straight away, or the government emergency vet clinic in Fgura if we're closed."
+    },
+    {
+      "icon": "plane",
+      "title": "Travelling or relocating",
+      "text": "Moving to or from Malta? We handle microchips, rabies vaccination, EU pet passports and health certificates. Book early, as some steps need weeks."
+    },
+    {
+      "icon": "paw",
+      "title": "New puppy or kitten?",
+      "text": "Your first visit covers a health check, a vaccination plan, microchipping and worming, plus time for all your questions."
+    }
+  ],
+  "faq": [
+    {
+      "q": "What should I do in an emergency?",
+      "a": "We don't run an out-of-hours service. During opening hours, call 2133 5793 and come straight in. When we're closed, please go to the government's National Veterinary Emergency Service clinic in Reggie Miller Square, Fgura."
+    },
+    {
+      "q": "How do I book an appointment?",
+      "a": "Book online at any time through our booking page, or call us during opening hours."
+    },
+    {
+      "q": "Is acupuncture safe for my pet?",
+      "a": "Dr. Teresa starts with a full examination to check acupuncture suits your pet. Most animals relax during sessions, and it can be combined with their usual medication."
+    },
+    {
+      "q": "Can you come to my home?",
+      "a": "We offer at-home euthanasia so your pet can say goodbye peacefully at home. Please call us to arrange it."
+    }
+  ],
+  "acupuncture": {
+    "title": "Veterinary acupuncture in Malta",
+    "intro": "Gentle, drug-free support for pain, mobility and recovery, given by Dr. Teresa Gatt at our Swatar clinic.",
+    "photo": "acupuncture",
+    "photoAlt": "Dr. Teresa Gatt giving acupuncture to a relaxed golden retriever",
+    "homeTeaser": "Dr. Teresa practises Traditional Chinese Veterinary Medicine (TCVM) acupuncture. It is a gentle, drug-free treatment used alongside conventional care, and is often chosen for older pets and long-term conditions.",
+    "whatIsIt": [
+      "Very fine, sterile needles are placed at specific points on the body to help relieve pain and support healing. Dr. Teresa uses Traditional Chinese Veterinary Medicine (TCVM) alongside modern veterinary medicine. It works with your pet's usual treatment and does not replace it.",
+      "Most pets become calm, and many fall asleep during a session."
+    ],
+    "helpsWith": [
+      "Arthritis and joint stiffness in older pets",
+      "Back, neck and spinal problems",
+      "Long-term pain management",
+      "Rehabilitation after surgery or injury"
+    ],
+    "steps": [
+      {
+        "title": "Initial consultation",
+        "text": "A full examination and review of your pet's history, to check acupuncture is suitable."
+      },
+      {
+        "title": "A tailored plan",
+        "text": "Dr. Teresa explains the plan and how many sessions she expects your pet to need."
+      },
+      {
+        "title": "Calm sessions",
+        "text": "Sessions take place in a quiet room, and you can stay with your pet."
+      },
+      {
+        "title": "Review progress",
+        "text": "We track how your pet is moving and feeling, and adjust the plan as needed."
+      }
+    ],
+    "fees": [],
+    "faq": [
+      {
+        "q": "Does it hurt?",
+        "a": "The needles are much finer than injection needles. Most pets barely notice them and relax within a few minutes."
+      },
+      {
+        "q": "How many sessions will my pet need?",
+        "a": "It depends on the condition. Dr. Teresa will give you an expected plan at the first consultation."
+      }
+    ]
+  }
+}
