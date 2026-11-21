@@ -57,6 +57,7 @@ function L(group, key, ...needed) {
 }
 const LINK = {
   topBarAddress: L("everyPage", "topBarAddress", "url"),
+  topBarSisterClinic: L("everyPage", "topBarSisterClinic", "text", "url"),
   headerBook: L("everyPage", "headerBook", "text", "url"),
   phoneMenuCall: L("everyPage", "phoneMenuCall", "text"),
   footerBook: L("everyPage", "footerBook", "text", "url"),
@@ -71,6 +72,7 @@ MENU.forEach((m, i) => { if (!m || !m.text || !m.url) stop(`menu item ${i + 1} i
 const HOME = {
   heroBook: L("homePage", "heroBook", "text", "url"),
   heroCall: L("homePage", "heroCall", "text"),
+  heroSisterClinic: L("homePage", "heroSisterClinic", "text", "url"),
   quickBook: L("homePage", "quickBook", "text", "smallText", "url"),
   quickCall: L("homePage", "quickCall", "text", "smallText"),
   quickDirections: L("homePage", "quickDirections", "text", "url"),
@@ -169,6 +171,7 @@ function header(pathName) {
       <a class="topbar__hide-sm" ${href(LINK.topBarAddress)}>${icon("pin")}${esc(clinic.address.line1)}, ${esc(clinic.address.locality)}</a>
     </div>
     <div class="topbar__group topbar__hide-sm">
+      <a class="topbar__sister" ${href(LINK.topBarSisterClinic)}>${esc(LINK.topBarSisterClinic.text)} ${icon("arrow")}</a>
       <a href="${mail}">${icon("mail")}${esc(clinic.email)}</a>
     </div>
   </div>
@@ -282,7 +285,7 @@ function homePage() {
       </div>
       <div class="trust">
         <span>${icon("check")}${esc(clinic.facebookRating)}</span>
-        <span>${icon("check")}Sister clinic to ${esc(C.sisterClinic.name.replace(" Animal Clinic", ""))}, ${esc(C.sisterClinic.place)}</span>
+        <a class="trust__link" ${href(HOME.heroSisterClinic)}>${icon("check")}<span>${esc(HOME.heroSisterClinic.text)}</span> ${icon("arrow", "icon icon--sm")}</a>
       </div>
     </div>
     ${vetsPair()}
