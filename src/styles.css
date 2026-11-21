@@ -105,6 +105,23 @@ p { margin: 0; }
 .trust a.trust__link > span { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
 .trust a.trust__link:hover > span { text-decoration-thickness: 2px; }
 .trust .icon--sm { width: 15px; height: 15px; }
+.trust a.trust__rating { display: inline-flex; gap: 8px; align-items: center; color: var(--body); text-decoration: none; }
+.trust a.trust__rating:hover > span:last-child { text-decoration: underline; text-underline-offset: 3px; }
+
+/* Review stars and cards */
+.star { width: 16px; height: 16px; flex: none; color: #E8A317; }
+.star--off { color: #D9CFDD; }
+.trust__stars, .rating-summary__stars, .review__stars, .trust .trust__stars { display: inline-flex; gap: 1px; }
+.rating-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.rating-summary strong { font-family: Montserrat, sans-serif; font-size: 1.6rem; line-height: 1; color: var(--purple-deep); }
+.rating-summary .star { width: 20px; height: 20px; }
+.reviews { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.review { margin: 0; padding: 24px; border-radius: 18px; background: #fff; border: 1px solid var(--line); display: flex; flex-direction: column; gap: 12px; }
+.review blockquote { margin: 0; flex: 1; font-size: 0.97rem; line-height: 1.6; color: var(--body); }
+.review blockquote::before { content: "\201C"; }
+.review blockquote::after { content: "\201D"; }
+.review figcaption { font-weight: 600; color: var(--purple-deep); display: flex; flex-direction: column; }
+.review figcaption span { font-weight: 400; font-size: 0.85rem; color: var(--muted); }
 
 /* Vet / Not Vets photo pair. The box keeps a fixed shape so the arrows always line up. */
 .vets-pair { position: relative; width: 100%; max-width: 460px; justify-self: center; }
@@ -233,6 +250,7 @@ p { margin: 0; }
 
 /* ---------- Tablet ---------- */
 @media (max-width: 1180px) {
+  .reviews { grid-template-columns: repeat(2, 1fr); }
   .nav { display: none; }
   .menu-btn { display: inline-flex; }
   .header__actions .btn--outline { display: none; }
@@ -257,6 +275,10 @@ p { margin: 0; }
   body { padding-bottom: calc(76px + var(--safe-bottom)); }
   .action-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; padding: 10px 14px calc(10px + var(--safe-bottom)); background: rgba(255,255,255,0.97); border-top: 1px solid var(--line); box-shadow: 0 -6px 20px rgba(59,20,76,0.08); }
   .action-bar .btn { min-height: 52px; }
+  /* Reviews become a swipeable row on phones */
+  .reviews { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 14px; margin: 0 -20px; padding: 0 20px 8px; scrollbar-width: none; }
+  .reviews::-webkit-scrollbar { display: none; }
+  .review { flex: 0 0 84%; scroll-snap-align: center; }
 }
 
 @media (max-width: 420px) {
