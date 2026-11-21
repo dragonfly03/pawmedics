@@ -7,6 +7,7 @@
     "clinic": "address: line1 = number and street, then locality, postcode and country (postcode is shown in the full address and given to Google). phone = how the number is shown; phoneInternational = what phones dial (keep +356).",
     "links": "EVERY link and button on the site, grouped by page (everyPage = top bar, menu, footer and the phone's bottom Call/Book bar). Each has its own text and url, so each booking button can go to a different place: change one and the others stay as they are. A url can be a full web address (https://...) or a page on this site (/acupuncture/, /#contact). Entries with text but no url are Call or Email buttons: they always use the phone number or email in clinic, and the number or email is shown with the text automatically (the narrow Call button in the phone's bottom bar shows the text only). topBarAddress is the address shown in the top bar (kept short so the bar fits on one line); the full address comes from clinic.address. Its url is also given to Google as the clinic's map. The other clinic is linked from three places, each set separately: topBarSisterClinic (top bar on every page; hidden on phones to save space), heroSisterClinic (the line under the main booking buttons on the home page) and homePage.sisterClinic (the Vetcare card in \"Two clinics, one team\"). footerFacebook's url is also given to Google as the clinic's Facebook page. The menu is a list: copy an item to add a menu link. app = the shortcuts shown when the installed app's icon is long-pressed on Android; the acupuncture shortcut must be a page on this site. Two links are fixed on purpose: the logo always goes to the home page, and the hidden \"Skip to content\" link for screen readers.",
     "hours": "24-hour times, e.g. \"19:00\" (shown as 7pm). For a closed day use \"closed\": true. schemaDays = English day names the row covers (used by Google). Hours appear in the top bar, contact section, footer and offline page.",
+    "notices": "Messages shown in a bar at the very top of every page, for example Christmas hours or a closure. Each notice appears by itself on its \"from\" date and disappears by itself after its \"until\" date (Malta time), so notices can be added weeks ahead and need no extra publish to switch on or off. Dates are written year-month-day, e.g. \"2026-12-24\". \"show\": false switches a notice off completely. linkText and linkUrl are optional (both or neither). Several notices can be listed; all that are in date show. Copy an existing { ... } item to add one.",
     "emergency": "The same message also appears in the first FAQ and in the \"Summer heat\" tip; update those too if it changes.",
     "vets": "Keep Dr. Andrew FIRST and Dr. Teresa SECOND: the home-page photo pair with the \"Vet / Not Vets\" arrows and the acupuncture page depend on this order. Type a short bio in \"bio\"; an empty bio is hidden. photo = image name in src/assets/img. If a photo is replaced, ask Claude to redraw the arrows.",
     "reviews": "The Google rating and the review cards on the home page. rating and count are typed in by hand, so update them now and then from Google (they also show under the main booking buttons). Each item is one review card: name (first name and initial), stars (1 to 5) and text. Keep the reviewer's own words; where a review is shortened, mark the missing part with … . Add, remove or reorder items freely; set \"show\": false to hide the whole section. The links to Google are links.homePage.heroReviews and links.homePage.reviewsAll.",
@@ -130,6 +131,16 @@
       "days": "Public holidays",
       "short": "Public holidays",
       "closed": true
+    }
+  ],
+  "notices": [
+    {
+      "show": false,
+      "from": "2026-12-20",
+      "until": "2027-01-02",
+      "text": "Christmas and New Year: our opening hours change over the holidays. Please call us before visiting.",
+      "linkText": "See opening hours",
+      "linkUrl": "/#contact"
     }
   ],
   "emergency": {
