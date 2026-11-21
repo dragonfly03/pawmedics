@@ -5,7 +5,7 @@
     "settings": "showInstallButton: false for now; true shows an \"Install the app\" button (app phase). themeColor = colour of the phone top bar in the app.",
     "logo": "Upload the logo to imgbb.com, open it, choose \"Direct links\" and paste the link that starts with https://i.ibb.co/ (ending .png or .jpg) into logo.url. The normal https://ibb.co/ page link will NOT work. For the phone app icon, upload a SQUARE 512 x 512 PNG and paste its direct link into logo.appIconUrl. Set showNameNextToLogo to false if the logo already contains the name. alt = description for screen readers. Leave fields empty (\"\") to keep the placeholder paw. The build saves a copy of the images inside the site; if it cannot download them (wrong link, or built somewhere without internet access, e.g. by Claude), it still finishes and links to ImgBB directly instead (works, but not offline).",
     "clinic": "phone = how the number is shown; phoneInternational = what phones dial (keep +356). facebookRating is shown exactly as written, so update it now and then.",
-    "links": "EVERY link and button on the site, grouped by page (everyPage = top bar, menu, footer and the phone's bottom Call/Book bar). Each has its own text and url, so each booking button can go to a different place: change one and the others stay as they are. A url can be a full web address (https://...) or a page on this site (/acupuncture/, /#contact). Entries with text but no url are Call or Email buttons: they always use the phone number or email in clinic, and the number or email is shown with the text automatically (the narrow Call button in the phone's bottom bar shows the text only). topBarAddress shows the clinic address; only its url is set here. footerFacebook's url is also given to Google as the clinic's Facebook page. The menu is a list: copy an item to add a menu link. app = the shortcuts shown when the installed app's icon is long-pressed on Android; the acupuncture shortcut must be a page on this site. Two links are fixed on purpose: the logo always goes to the home page, and the hidden \"Skip to content\" link for screen readers.",
+    "links": "EVERY link and button on the site, grouped by page (everyPage = top bar, menu, footer and the phone's bottom Call/Book bar). Each has its own text and url, so each booking button can go to a different place: change one and the others stay as they are. A url can be a full web address (https://...) or a page on this site (/acupuncture/, /#contact). Entries with text but no url are Call or Email buttons: they always use the phone number or email in clinic, and the number or email is shown with the text automatically (the narrow Call button in the phone's bottom bar shows the text only). topBarAddress shows the clinic address; only its url is set here. The other clinic is linked from three places, each set separately: topBarSisterClinic (top bar on every page; hidden on phones to save space), heroSisterClinic (the line under the main booking buttons on the home page) and homePage.sisterClinic (the Vetcare card in \"Two clinics, one team\"). footerFacebook's url is also given to Google as the clinic's Facebook page. The menu is a list: copy an item to add a menu link. app = the shortcuts shown when the installed app's icon is long-pressed on Android; the acupuncture shortcut must be a page on this site. Two links are fixed on purpose: the logo always goes to the home page, and the hidden \"Skip to content\" link for screen readers.",
     "hours": "24-hour times, e.g. \"19:00\" (shown as 7pm). For a closed day use \"closed\": true. schemaDays = English day names the row covers (used by Google). Hours appear in the top bar, contact section, footer and offline page.",
     "emergency": "The same message also appears in the first FAQ and in the \"Summer heat\" tip; update those too if it changes.",
     "vets": "Keep Dr. Andrew FIRST and Dr. Teresa SECOND: the home-page photo pair with the \"Vet / Not Vets\" arrows and the acupuncture page depend on this order. Type a short bio in \"bio\"; an empty bio is hidden. photo = image name in src/assets/img. If a photo is replaced, ask Claude to redraw the arrows.",
@@ -45,6 +45,7 @@
   "links": {
     "everyPage": {
       "topBarAddress": { "url": "https://www.google.com/maps/search/?api=1&query=PawMedics+42+Triq+Guzepp+Xuereb+Swatar+Malta" },
+      "topBarSisterClinic": { "text": "Our other clinic: Vetcare", "url": "https://www.vetcaremalta.com/en/home.htm" },
       "menu": [
         { "text": "Services", "url": "/#services" },
         { "text": "Acupuncture", "url": "/acupuncture/" },
@@ -63,6 +64,7 @@
     "homePage": {
       "heroBook": { "text": "Book an appointment", "url": "https://my.provet.com/pawmedics-limited/pawmedics-limited" },
       "heroCall": { "text": "Call" },
+      "heroSisterClinic": { "text": "Sister clinic to Vetcare, San Ġwann", "url": "https://www.vetcaremalta.com/en/home.htm" },
       "quickBook": { "text": "Book online", "smallText": "Pick a time that suits you", "url": "https://my.provet.com/pawmedics-limited/pawmedics-limited" },
       "quickCall": { "text": "Call", "smallText": "Speak to the clinic" },
       "quickDirections": { "text": "Get directions", "url": "https://www.google.com/maps/search/?api=1&query=PawMedics+42+Triq+Guzepp+Xuereb+Swatar+Malta" },
@@ -71,7 +73,7 @@
       "acupunctureMore": { "text": "How acupuncture works", "url": "/acupuncture/" },
       "servicesBook": { "text": "Book any service", "url": "https://my.provet.com/pawmedics-limited/pawmedics-limited" },
       "thisClinicBook": { "text": "Book at PawMedics", "url": "https://my.provet.com/pawmedics-limited/pawmedics-limited" },
-      "sisterClinic": { "text": "Visit Vetcare", "url": "https://www.vetcaremalta.com" },
+      "sisterClinic": { "text": "Visit Vetcare", "url": "https://www.vetcaremalta.com/en/home.htm" },
       "contactBook": { "text": "Book online", "url": "https://my.provet.com/pawmedics-limited/pawmedics-limited" },
       "contactMap": { "text": "Open in Google Maps", "url": "https://www.google.com/maps/search/?api=1&query=PawMedics+42+Triq+Guzepp+Xuereb+Swatar+Malta" }
     },
