@@ -4,11 +4,12 @@
     "editingRules": "Only change text INSIDE the quotes \"...\". Keep quotes, colons and commas. true/false have no quotes. When adding a list item, copy an existing { ... } item and put a comma between items but not after the last one. Check the file at jsonlint.com before publishing. If the file has a mistake, the build stops and the live site stays as it was.",
     "settings": "showInstallButton: false for now; true shows an \"Install the app\" button (app phase). themeColor = colour of the phone top bar in the app.",
     "logo": "Upload the logo to imgbb.com, open it, choose \"Direct links\" and paste the link that starts with https://i.ibb.co/ (ending .png or .jpg) into logo.url. The normal https://ibb.co/ page link will NOT work. For the phone app icon, upload a SQUARE 512 x 512 PNG and paste its direct link into logo.appIconUrl. Set showNameNextToLogo to false if the logo already contains the name. alt = description for screen readers. Leave fields empty (\"\") to keep the placeholder paw. The build saves a copy of the images inside the site; if it cannot download them (wrong link, or built somewhere without internet access, e.g. by Claude), it still finishes and links to ImgBB directly instead (works, but not offline).",
-    "clinic": "address: line1 = number and street, then locality, postcode and country (postcode is shown in the full address and given to Google). phone = how the number is shown; phoneInternational = what phones dial (keep +356). facebookRating is shown exactly as written, so update it now and then.",
+    "clinic": "address: line1 = number and street, then locality, postcode and country (postcode is shown in the full address and given to Google). phone = how the number is shown; phoneInternational = what phones dial (keep +356).",
     "links": "EVERY link and button on the site, grouped by page (everyPage = top bar, menu, footer and the phone's bottom Call/Book bar). Each has its own text and url, so each booking button can go to a different place: change one and the others stay as they are. A url can be a full web address (https://...) or a page on this site (/acupuncture/, /#contact). Entries with text but no url are Call or Email buttons: they always use the phone number or email in clinic, and the number or email is shown with the text automatically (the narrow Call button in the phone's bottom bar shows the text only). topBarAddress is the address shown in the top bar (kept short so the bar fits on one line); the full address comes from clinic.address. Its url is also given to Google as the clinic's map. The other clinic is linked from three places, each set separately: topBarSisterClinic (top bar on every page; hidden on phones to save space), heroSisterClinic (the line under the main booking buttons on the home page) and homePage.sisterClinic (the Vetcare card in \"Two clinics, one team\"). footerFacebook's url is also given to Google as the clinic's Facebook page. The menu is a list: copy an item to add a menu link. app = the shortcuts shown when the installed app's icon is long-pressed on Android; the acupuncture shortcut must be a page on this site. Two links are fixed on purpose: the logo always goes to the home page, and the hidden \"Skip to content\" link for screen readers.",
     "hours": "24-hour times, e.g. \"19:00\" (shown as 7pm). For a closed day use \"closed\": true. schemaDays = English day names the row covers (used by Google). Hours appear in the top bar, contact section, footer and offline page.",
     "emergency": "The same message also appears in the first FAQ and in the \"Summer heat\" tip; update those too if it changes.",
     "vets": "Keep Dr. Andrew FIRST and Dr. Teresa SECOND: the home-page photo pair with the \"Vet / Not Vets\" arrows and the acupuncture page depend on this order. Type a short bio in \"bio\"; an empty bio is hidden. photo = image name in src/assets/img. If a photo is replaced, ask Claude to redraw the arrows.",
+    "reviews": "The Google rating and the review cards on the home page. rating and count are typed in by hand, so update them now and then from Google (they also show under the main booking buttons). Each item is one review card: name (first name and initial), stars (1 to 5) and text. Keep the reviewer's own words; where a review is shortened, mark the missing part with … . Add, remove or reorder items freely; set \"show\": false to hide the whole section. The links to Google are links.homePage.heroReviews and links.homePage.reviewsAll.",
     "services": "\"show\": true/false shows or hides a service (set false for anything the Swatar clinic does not offer). \"featured\": true = purple outline. \"link\" adds a link at the bottom of the card; \"linkText\" is its wording (\"Learn more\" if left out).",
     "maltaTips": "icon can be bug, sun, plane or paw.",
     "faq": "Home-page questions; the first one is shown open.",
@@ -40,8 +41,7 @@
       "postcode": "BKR 4131",
       "country": "Malta",
       "countryCode": "MT"
-    },
-    "facebookRating": "100% recommend on Facebook (12 reviews)"
+    }
   },
   "links": {
     "everyPage": {
@@ -65,6 +65,7 @@
     "homePage": {
       "heroBook": { "text": "Book an appointment", "url": "https://my.provet.com/pawmedics-limited/pawmedics-limited" },
       "heroCall": { "text": "Call" },
+      "heroReviews": { "url": "https://maps.app.goo.gl/d6E86UsNSkKEongRA" },
       "heroSisterClinic": { "text": "Sister clinic to Vetcare, San Ġwann", "url": "https://www.vetcaremalta.com/en/home.htm" },
       "quickBook": { "text": "Book online", "smallText": "Pick a time that suits you", "url": "https://my.provet.com/pawmedics-limited/pawmedics-limited" },
       "quickCall": { "text": "Call", "smallText": "Speak to the clinic" },
@@ -72,6 +73,7 @@
       "quickEmail": { "text": "Email us" },
       "acupunctureBook": { "text": "Book an acupuncture session", "url": "https://my.provet.com/pawmedics-limited/pawmedics-limited" },
       "acupunctureMore": { "text": "How acupuncture works", "url": "/acupuncture/" },
+      "reviewsAll": { "text": "Read all reviews on Google", "url": "https://maps.app.goo.gl/d6E86UsNSkKEongRA" },
       "servicesBook": { "text": "Book any service", "url": "https://my.provet.com/pawmedics-limited/pawmedics-limited" },
       "thisClinicBook": { "text": "Book at PawMedics", "url": "https://my.provet.com/pawmedics-limited/pawmedics-limited" },
       "sisterClinic": { "text": "Visit Vetcare", "url": "https://www.vetcaremalta.com/en/home.htm" },
@@ -162,6 +164,45 @@
       "photoAlt": "Dr. Teresa Gatt cuddling a fluffy puppy"
     }
   ],
+  "reviews": {
+    "show": true,
+    "title": "What pet owners say",
+    "rating": "4.8",
+    "count": 24,
+    "source": "Google",
+    "items": [
+      {
+        "name": "Shana B.",
+        "stars": 5,
+        "text": "Dr. Teresa and Dr. Andrew are truly exceptional veterinarians who genuinely care about every animal they treat. … They take the time to explain everything clearly and always make both pets and their owners feel comfortable and supported."
+      },
+      {
+        "name": "Cinzia G.",
+        "stars": 5,
+        "text": "The vets and staff running this clinic are not only highly professional but also genuinely caring. All my pets have been handled brilliantly and each case seen through thoroughly, with no stones left unturned."
+      },
+      {
+        "name": "StaticRevo",
+        "stars": 5,
+        "text": "The staff were extremely professional, kind, and quick to assist when my cat became unwell. They carried out the necessary tests promptly, explained everything clearly, and provided treatment straight away."
+      },
+      {
+        "name": "Francesca V.",
+        "stars": 5,
+        "text": "Dr Teresa, Dr Adam and Dr Andrew have all been wonderful with Pop, our beloved Shih Tzu. I recommend PawMedics wholeheartedly!"
+      },
+      {
+        "name": "Seyma G.",
+        "stars": 5,
+        "text": "The staff was very professional, handled my stressed cat with great care, and explained everything thoroughly. Highly recommend this clinic!"
+      },
+      {
+        "name": "Keith C.",
+        "stars": 5,
+        "text": "Exceptional service and care .. its never nice going to a vet but they make it the best possible experience. Thanks for taking care of Jiro"
+      }
+    ]
+  },
   "services": [
     {
       "show": true,
