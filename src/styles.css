@@ -66,6 +66,12 @@ p { margin: 0; }
 .btn-row { display: flex; flex-wrap: wrap; gap: 12px; }
 
 /* Top bar */
+/* Notices (dates set in content/site.json; shown by app.js) */
+.notices[hidden], .notice[hidden] { display: none; }
+.notice { background: var(--orange); color: #fff; font-size: 0.95rem; font-weight: 500; }
+.notice + .notice { border-top: 1px solid rgba(255,255,255,0.35); }
+.notice .wrap { padding-top: 10px; padding-bottom: 10px; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; justify-content: center; text-align: center; }
+.notice a { color: #fff; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; }
 .topbar { background: var(--purple); color: #fff; font-size: 0.875rem; }
 .topbar .wrap { display: flex; flex-wrap: wrap; gap: 6px 24px; align-items: center; justify-content: space-between; padding-top: 9px; padding-bottom: 9px; }
 .topbar span, .topbar a { display: inline-flex; gap: 8px; align-items: center; color: #fff; text-decoration: none; }
