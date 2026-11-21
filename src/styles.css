@@ -71,6 +71,9 @@ p { margin: 0; }
 .topbar span, .topbar a { display: inline-flex; gap: 8px; align-items: center; color: #fff; text-decoration: none; }
 .topbar .icon { width: 16px; height: 16px; }
 .topbar__group { display: flex; flex-wrap: wrap; gap: 6px 22px; }
+.topbar a.topbar__sister { font-weight: 600; gap: 6px; }
+.topbar a.topbar__sister .icon { width: 14px; height: 14px; }
+.topbar a:hover { text-decoration: underline; text-underline-offset: 3px; }
 
 /* Header */
 .header { background: #fff; border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 50; }
@@ -98,6 +101,10 @@ p { margin: 0; }
 .pill { align-self: flex-start; font-size: 0.875rem; font-weight: 600; color: var(--purple); background: #fff; border: 1px solid #DFCFE6; padding: 6px 14px; border-radius: 999px; }
 .trust { display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 0.93rem; color: var(--body); }
 .trust span { display: inline-flex; gap: 8px; align-items: center; }
+.trust a.trust__link { display: inline-flex; gap: 8px; align-items: center; color: var(--purple); font-weight: 600; text-decoration: none; }
+.trust a.trust__link > span { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.trust a.trust__link:hover > span { text-decoration-thickness: 2px; }
+.trust .icon--sm { width: 15px; height: 15px; }
 
 /* Vet / Not Vets photo pair. The box keeps a fixed shape so the arrows always line up. */
 .vets-pair { position: relative; width: 100%; max-width: 460px; justify-self: center; }
