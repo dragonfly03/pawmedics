@@ -120,6 +120,28 @@ REVIEWS.items.forEach((r, i) => {
   if (!r || !String(r.name || "").trim() || !String(r.text || "").trim()) stop(`review ${i + 1} in reviews.items needs a "name" and a "text".`);
   if (!Number.isInteger(r.stars) || r.stars < 1 || r.stars > 5) stop(`review ${i + 1} in reviews.items needs "stars" from 1 to 5 (no quotes).`);
 });
+// Notices: bars at the top of every page that switch on and off by date in the visitor's browser.
+const isDate = (d) => typeof d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d) && !Number.isNaN(Date.parse(d + "T00:00:00Z")) && new Date(d + "T00:00:00Z").toISOString().slice(0, 10) === d;
+const NOTICES = C.notices === undefined ? [] : C.notices;
+if (!Array.isArray(NOTICES)) stop("notices must be a list [ ... ].");
+NOTICES.forEach((n, i) => {
+  const w = `notice ${i + 1} in notices`;
+  if (!n || typeof n !== "object") stop(`${w} is not written correctly.`);
+  if (n.show === false) return;
+  if (!String(n.text || "").trim()) stop(`${w} needs a "text".`);
+  if (!isDate(n.from)) stop(`${w} needs a "from" date written like "2026-12-24".`);
+  if (!isDate(n.until)) stop(`${w} needs an "until" date written like "2026-12-27".`);
+  if (n.from > n.until) stop(`${w}: the "from" date is after the "until" date.`);
+  const hasText = !!String(n.linkText || "").trim(), hasUrl = !!String(n.linkUrl || "").trim();
+  if (hasText !== hasUrl) stop(`${w}: give both "linkText" and "linkUrl", or neither.`);
+});
+const noticesHtml = () => {
+  const live = NOTICES.filter((n) => n.show !== false);
+  if (!live.length) return "";
+  return `<div class="notices" id="notices" hidden>
+${live.map((n) => `  <div class="notice" data-from="${esc(n.from)}" data-until="${esc(n.until)}" role="status" hidden><div class="wrap"><span>${esc(n.text)}</span>${n.linkUrl && String(n.linkUrl).trim() ? ` <a href="${esc(String(n.linkUrl).trim())}">${esc(n.linkText)} →</a>` : ""}</div></div>`).join("\n")}
+</div>`;
+};
 const ratingLine = `${REVIEWS.rating} on ${REVIEWS.source || "Google"} · ${REVIEWS.count} reviews`;
 const href = (entry) => `href="${esc(entry.url.trim())}"`;
 
@@ -183,6 +205,7 @@ function header(pathName) {
   // Menu items come from links.everyPage.menu; the one for the current page is marked.
   const links = MENU.map((m) => `<a ${href(m)}${m.url.trim() === pathName ? ' aria-current="page"' : ""}>${esc(m.text)}</a>`).join("\n");
   return `<a class="skip" href="#main">Skip to content</a>
+${noticesHtml()}
 <div class="topbar">
   <div class="wrap">
     <div class="topbar__group">
@@ -600,6 +623,19 @@ const appJs = () => `// Small helpers: mobile menu, app install, offline support
       btn.setAttribute("aria-label", open ? "Close menu" : "Open menu");
     });
     nav.addEventListener("click", function (e) { if (e.target.tagName === "A") { nav.classList.remove("is-open"); btn.setAttribute("aria-expanded", "false"); } });
+  }
+
+  // Notices: show only those whose dates include today (Malta time), so they switch on and off by themselves.
+  var box = document.getElementById("notices");
+  if (box) {
+    var today;
+    try { today = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Malta", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date()); }
+    catch (e) { var d = new Date(); today = d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); }
+    var any = false;
+    box.querySelectorAll(".notice").forEach(function (n) {
+      if (today >= n.getAttribute("data-from") && today <= n.getAttribute("data-until")) { n.hidden = false; any = true; }
+    });
+    if (any) box.hidden = false;
   }
 
   if ("serviceWorker" in navigator) {
