@@ -18,7 +18,10 @@ const SITE = C.settings.siteUrl.replace(/\/$/, "");
 const esc = (s = "") => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const tel = `tel:${clinic.phoneInternational}`;
 const mail = `mailto:${clinic.email}`;
-const fullAddress = `${clinic.address.line1}, ${clinic.address.locality}, ${clinic.address.country}`;
+// "Swatar BKR 4131" (locality then postcode, as Maltese addresses are written); postcode is optional.
+// The postcode is joined with a non-breaking space so "BKR 4131" never splits across two lines.
+const localityLine = [clinic.address.locality, String(clinic.address.postcode || "").trim().replace(/ /g, "\u00A0")].filter((x) => x && String(x).trim()).join(" ");
+const fullAddress = `${clinic.address.line1}, ${localityLine}, ${clinic.address.country}`;
 const fmtTime = (t) => { const [h, m] = t.split(":").map(Number); const ap = h >= 12 ? "pm" : "am"; const hh = h % 12 || 12; return m ? `${hh}:${String(m).padStart(2, "0")}${ap}` : `${hh}${ap}`; };
 const hoursText = (h) => (h.closed ? "Closed" : `${fmtTime(h.open)} – ${fmtTime(h.close)}`);
 const hoursSummary = () => {
@@ -56,7 +59,7 @@ function L(group, key, ...needed) {
   return entry;
 }
 const LINK = {
-  topBarAddress: L("everyPage", "topBarAddress", "url"),
+  topBarAddress: L("everyPage", "topBarAddress", "text", "url"),
   topBarSisterClinic: L("everyPage", "topBarSisterClinic", "text", "url"),
   headerBook: L("everyPage", "headerBook", "text", "url"),
   phoneMenuCall: L("everyPage", "phoneMenuCall", "text"),
@@ -126,7 +129,8 @@ function head({ title, description, pathName }) {
     telephone: clinic.phoneInternational,
     email: clinic.email,
     image: SITE + "/assets/img/acupuncture.jpg",
-    address: { "@type": "PostalAddress", streetAddress: clinic.address.line1, addressLocality: clinic.address.locality, addressCountry: clinic.address.countryCode },
+    address: { "@type": "PostalAddress", streetAddress: clinic.address.line1, addressLocality: clinic.address.locality, ...(clinic.address.postcode ? { postalCode: clinic.address.postcode } : {}), addressCountry: clinic.address.countryCode },
+    hasMap: LINK.topBarAddress.url.trim(),
     openingHoursSpecification: C.hours.filter((h) => !h.closed && h.schemaDays).map((h) => ({ "@type": "OpeningHoursSpecification", dayOfWeek: h.schemaDays, opens: h.open, closes: h.close })),
     sameAs: [LINK.footerFacebook.url.trim()],
   };
@@ -168,7 +172,7 @@ function header(pathName) {
   <div class="wrap">
     <div class="topbar__group">
       <span>${icon("clock")}${esc(hoursSummary())}</span>
-      <a class="topbar__hide-sm" ${href(LINK.topBarAddress)}>${icon("pin")}${esc(clinic.address.line1)}, ${esc(clinic.address.locality)}</a>
+      <a class="topbar__hide-sm" ${href(LINK.topBarAddress)}>${icon("pin")}${esc(LINK.topBarAddress.text)}</a>
     </div>
     <div class="topbar__group topbar__hide-sm">
       <a class="topbar__sister" ${href(LINK.topBarSisterClinic)}>${esc(LINK.topBarSisterClinic.text)} ${icon("arrow")}</a>
@@ -210,7 +214,7 @@ function footer() {
     </div>
     <div class="footer__col">
       <span class="footer__title">Visit</span>
-      <span>${esc(clinic.address.line1)}, ${esc(clinic.address.locality)}</span>
+      <span>${esc(clinic.address.line1)}, ${esc(localityLine)}</span>
       <a href="${tel}">${esc(clinic.phone)}</a>
       <a href="${mail}">${esc(clinic.email)}</a>
     </div>
@@ -353,7 +357,7 @@ ${C.vets.map((v) => `      <div class="vet">${photo(v.photo, v.name, "112px", 'l
   <div class="wrap">
     <div class="section-head"><div><h2>Two clinics, one team</h2><p>${esc(clinic.name)} and ${esc(C.sisterClinic.name)} are both run by ${C.vets.map((v) => esc(v.name)).join(" and ")}, so you can visit whichever is nearer.</p></div></div>
     <div class="grid grid--two">
-      <div class="clinic clinic--here"><span class="eyebrow">You are here</span><h3>${esc(clinic.name)}, ${esc(clinic.address.locality)}</h3><p>${esc(clinic.address.line1)}, ${esc(clinic.address.locality)}<br>${esc(clinic.phone)} · ${esc(clinic.email)}</p><a ${href(HOME.thisClinicBook)}>${esc(HOME.thisClinicBook.text)} →</a></div>
+      <div class="clinic clinic--here"><span class="eyebrow">You are here</span><h3>${esc(clinic.name)}, ${esc(clinic.address.locality)}</h3><p>${esc(clinic.address.line1)}, ${esc(localityLine)}<br>${esc(clinic.phone)} · ${esc(clinic.email)}</p><a ${href(HOME.thisClinicBook)}>${esc(HOME.thisClinicBook.text)} →</a></div>
       <div class="clinic"><span class="eyebrow">${esc(C.sisterClinic.badge)}</span><h3>${esc(C.sisterClinic.name)}, ${esc(C.sisterClinic.place)}</h3><p>${esc(C.sisterClinic.address)}<br>${esc(C.sisterClinic.phone)} · ${esc(C.sisterClinic.email)}</p><a ${href(HOME.sisterClinic)}>${esc(HOME.sisterClinic.text)} →</a></div>
     </div>
   </div>
