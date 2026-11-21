@@ -45,6 +45,9 @@ const ICONS = {
   paw: '<circle cx="5.5" cy="10" r="2"/><circle cx="9.5" cy="5.5" r="2"/><circle cx="14.5" cy="5.5" r="2"/><circle cx="18.5" cy="10" r="2"/><path d="M12 12c-3 0-5.5 3.5-5.5 6 0 1.7 1.3 2.5 3 2.5 1 0 1.6-.5 2.5-.5s1.5.5 2.5.5c1.7 0 3-.8 3-2.5 0-2.5-2.5-6-5.5-6z"/>',
   download: '<path d="M12 3v12M7 10l5 5 5-5M5 21h14"/>',
 };
+// Filled star for review ratings (separate from the outline icons above).
+const star = (cls = "star") => `<svg class="${cls}" aria-hidden="true" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z"/></svg>`;
+const stars = (n, cls) => Array.from({ length: 5 }, (_, i) => star(i < n ? cls : `${cls} star--off`)).join("");
 // ---------- links ----------
 // Every link and button is set in content/site.json under "links". This looks one up and stops the
 // build with a clear message if it's missing, so a typo never puts a broken link on the live site.
@@ -75,7 +78,9 @@ MENU.forEach((m, i) => { if (!m || !m.text || !m.url) stop(`menu item ${i + 1} i
 const HOME = {
   heroBook: L("homePage", "heroBook", "text", "url"),
   heroCall: L("homePage", "heroCall", "text"),
+  heroReviews: L("homePage", "heroReviews", "url"),
   heroSisterClinic: L("homePage", "heroSisterClinic", "text", "url"),
+  reviewsAll: L("homePage", "reviewsAll", "text", "url"),
   quickBook: L("homePage", "quickBook", "text", "smallText", "url"),
   quickCall: L("homePage", "quickCall", "text", "smallText"),
   quickDirections: L("homePage", "quickDirections", "text", "url"),
@@ -106,6 +111,16 @@ const APP = {
   acupunctureShortcut: L("app", "acupunctureShortcut", "text", "shortText", "url"),
 };
 if (!APP.acupunctureShortcut.url.startsWith("/")) stop('links.app.acupunctureShortcut "url" must be a page on this site, starting with "/" (phones only allow app shortcuts to the app\'s own pages).');
+// Reviews: check the section so a typo stops the build instead of showing a broken card.
+const REVIEWS = C.reviews || stop("reviews is missing.");
+if (!String(REVIEWS.rating || "").trim()) stop('reviews needs a "rating", e.g. "4.8".');
+if (!Number.isInteger(REVIEWS.count) || REVIEWS.count < 1) stop('reviews "count" must be a whole number without quotes, e.g. 24.');
+if (!Array.isArray(REVIEWS.items)) stop("reviews.items must be a list [ ... ].");
+REVIEWS.items.forEach((r, i) => {
+  if (!r || !String(r.name || "").trim() || !String(r.text || "").trim()) stop(`review ${i + 1} in reviews.items needs a "name" and a "text".`);
+  if (!Number.isInteger(r.stars) || r.stars < 1 || r.stars > 5) stop(`review ${i + 1} in reviews.items needs "stars" from 1 to 5 (no quotes).`);
+});
+const ratingLine = `${REVIEWS.rating} on ${REVIEWS.source || "Google"} · ${REVIEWS.count} reviews`;
 const href = (entry) => `href="${esc(entry.url.trim())}"`;
 
 const icon = (name, cls = "icon") => `<svg class="${cls}" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]}</svg>`;
@@ -288,7 +303,7 @@ function homePage() {
         <a class="btn btn--primary btn--lg" href="${tel}">${icon("phone")}${esc(HOME.heroCall.text)} ${esc(clinic.phone)}</a>
       </div>
       <div class="trust">
-        <span>${icon("check")}${esc(clinic.facebookRating)}</span>
+        <a class="trust__rating" ${href(HOME.heroReviews)}><span class="trust__stars">${stars(5, "star")}</span><span>${esc(ratingLine)}</span></a>
         <a class="trust__link" ${href(HOME.heroSisterClinic)}>${icon("check")}<span>${esc(HOME.heroSisterClinic.text)}</span> ${icon("arrow", "icon icon--sm")}</a>
       </div>
     </div>
@@ -353,7 +368,21 @@ ${C.vets.map((v) => `      <div class="vet">${photo(v.photo, v.name, "112px", 'l
   </div>
 </section>
 
-<section class="section section--tint">
+${REVIEWS.show !== false && REVIEWS.items.length ? `<section class="section section--cream" id="reviews">
+  <div class="wrap">
+    <div class="section-head">
+      <div><h2>${esc(REVIEWS.title || "What pet owners say")}</h2>
+        <p class="rating-summary"><strong>${esc(REVIEWS.rating)}</strong><span class="rating-summary__stars">${stars(5, "star")}</span><span>from ${esc(String(REVIEWS.count))} ${esc(REVIEWS.source || "Google")} reviews</span></p>
+      </div>
+      <a ${href(HOME.reviewsAll)} style="font-weight: 600">${esc(HOME.reviewsAll.text)} →</a>
+    </div>
+    <div class="reviews" role="list">
+${REVIEWS.items.map((r) => `      <figure class="review" role="listitem"><div class="review__stars" aria-label="${r.stars} out of 5 stars" role="img">${stars(r.stars, "star")}</div><blockquote>${esc(r.text)}</blockquote><figcaption>${esc(r.name)}<span>${esc(REVIEWS.source || "Google")} review</span></figcaption></figure>`).join("\n")}
+    </div>
+  </div>
+</section>
+
+` : ""}<section class="section section--tint">
   <div class="wrap">
     <div class="section-head"><div><h2>Two clinics, one team</h2><p>${esc(clinic.name)} and ${esc(C.sisterClinic.name)} are both run by ${C.vets.map((v) => esc(v.name)).join(" and ")}, so you can visit whichever is nearer.</p></div></div>
     <div class="grid grid--two">
