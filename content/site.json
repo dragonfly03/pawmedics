@@ -35,7 +35,7 @@
     "phoneInternational": "+35621335793",
     "email": "info@pawmedics.mt",
     "address": {
-      "line1": "42, Triq Ġużeppi Xuereb ix-Xudi",
+      "line1": "42, Triq Guzepp Xuereb",
       "locality": "Swatar",
       "postcode": "BKR 4131",
       "country": "Malta",
@@ -45,7 +45,7 @@
   },
   "links": {
     "everyPage": {
-      "topBarAddress": { "text": "42, Triq Ġużeppi Xuereb ix-Xudi", "url": "https://maps.app.goo.gl/ACgmMMcnBZhCT744A" },
+      "topBarAddress": { "text": "42, Triq Guzepp Xuereb", "url": "https://maps.app.goo.gl/ACgmMMcnBZhCT744A" },
       "topBarSisterClinic": { "text": "Our other clinic: Vetcare", "url": "https://www.vetcaremalta.com/en/home.htm" },
       "menu": [
         { "text": "Services", "url": "/#services" },
