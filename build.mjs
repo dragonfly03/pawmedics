@@ -42,6 +42,67 @@ const ICONS = {
   paw: '<circle cx="5.5" cy="10" r="2"/><circle cx="9.5" cy="5.5" r="2"/><circle cx="14.5" cy="5.5" r="2"/><circle cx="18.5" cy="10" r="2"/><path d="M12 12c-3 0-5.5 3.5-5.5 6 0 1.7 1.3 2.5 3 2.5 1 0 1.6-.5 2.5-.5s1.5.5 2.5.5c1.7 0 3-.8 3-2.5 0-2.5-2.5-6-5.5-6z"/>',
   download: '<path d="M12 3v12M7 10l5 5 5-5M5 21h14"/>',
 };
+// ---------- links ----------
+// Every link and button is set in content/site.json under "links". This looks one up and stops the
+// build with a clear message if it's missing, so a typo never puts a broken link on the live site.
+function stop(msg) {
+  console.error(`\nBuild stopped: ${msg}\nFix content/site.json and try again. The live site has not changed.\n`);
+  process.exit(1);
+}
+function L(group, key, ...needed) {
+  const entry = ((C.links || {})[group] || {})[key];
+  if (!entry || typeof entry !== "object") stop(`links.${group}.${key} is missing.`);
+  for (const f of needed) if (typeof entry[f] !== "string" || !entry[f].trim()) stop(`links.${group}.${key} needs a "${f}".`);
+  return entry;
+}
+const LINK = {
+  topBarAddress: L("everyPage", "topBarAddress", "url"),
+  headerBook: L("everyPage", "headerBook", "text", "url"),
+  phoneMenuCall: L("everyPage", "phoneMenuCall", "text"),
+  footerBook: L("everyPage", "footerBook", "text", "url"),
+  footerFacebook: L("everyPage", "footerFacebook", "text", "url"),
+  footerPrivacy: L("everyPage", "footerPrivacy", "text", "url"),
+  phoneBarCall: L("everyPage", "phoneBarCall", "text"),
+  phoneBarBook: L("everyPage", "phoneBarBook", "text", "url"),
+};
+const MENU = (C.links && C.links.everyPage && C.links.everyPage.menu) || stop("links.everyPage.menu is missing.");
+if (!Array.isArray(MENU)) stop("links.everyPage.menu must be a list [ ... ].");
+MENU.forEach((m, i) => { if (!m || !m.text || !m.url) stop(`menu item ${i + 1} in links.everyPage.menu needs a "text" and a "url".`); });
+const HOME = {
+  heroBook: L("homePage", "heroBook", "text", "url"),
+  heroCall: L("homePage", "heroCall", "text"),
+  quickBook: L("homePage", "quickBook", "text", "smallText", "url"),
+  quickCall: L("homePage", "quickCall", "text", "smallText"),
+  quickDirections: L("homePage", "quickDirections", "text", "url"),
+  quickEmail: L("homePage", "quickEmail", "text"),
+  acupunctureBook: L("homePage", "acupunctureBook", "text", "url"),
+  acupunctureMore: L("homePage", "acupunctureMore", "text", "url"),
+  servicesBook: L("homePage", "servicesBook", "text", "url"),
+  thisClinicBook: L("homePage", "thisClinicBook", "text", "url"),
+  sisterClinic: L("homePage", "sisterClinic", "text", "url"),
+  contactBook: L("homePage", "contactBook", "text", "url"),
+  contactMap: L("homePage", "contactMap", "text", "url"),
+};
+const ACU = {
+  breadcrumbHome: L("acupuncturePage", "breadcrumbHome", "text", "url"),
+  heroBook: L("acupuncturePage", "heroBook", "text", "url"),
+  heroCall: L("acupuncturePage", "heroCall", "text"),
+  feesBook: L("acupuncturePage", "feesBook", "text", "url"),
+  bottomBook: L("acupuncturePage", "bottomBook", "text", "url"),
+  bottomCall: L("acupuncturePage", "bottomCall", "text"),
+};
+const OTHER = {
+  privacyBooking: L("otherPages", "privacyBooking", "text", "url"),
+  notFoundHome: L("otherPages", "notFoundHome", "text", "url"),
+  notFoundBook: L("otherPages", "notFoundBook", "text", "url"),
+};
+const APP = {
+  bookShortcut: L("app", "bookShortcut", "text", "shortText", "url"),
+  acupunctureShortcut: L("app", "acupunctureShortcut", "text", "shortText", "url"),
+};
+if (!APP.acupunctureShortcut.url.startsWith("/")) stop('links.app.acupunctureShortcut "url" must be a page on this site, starting with "/" (phones only allow app shortcuts to the app\'s own pages).');
+const href = (entry) => `href="${esc(entry.url.trim())}"`;
+
 const icon = (name, cls = "icon") => `<svg class="${cls}" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]}</svg>`;
 
 // Responsive photo: uses the 480px and 900px WebP files made from each photo.
@@ -65,7 +126,7 @@ function head({ title, description, pathName }) {
     image: SITE + "/assets/img/acupuncture.jpg",
     address: { "@type": "PostalAddress", streetAddress: clinic.address.line1, addressLocality: clinic.address.locality, addressCountry: clinic.address.countryCode },
     openingHoursSpecification: C.hours.filter((h) => !h.closed && h.schemaDays).map((h) => ({ "@type": "OpeningHoursSpecification", dayOfWeek: h.schemaDays, opens: h.open, closes: h.close })),
-    sameAs: [clinic.facebookUrl],
+    sameAs: [LINK.footerFacebook.url.trim()],
   };
   return `<!doctype html>
 <html lang="${C.settings.language}">
@@ -97,21 +158,15 @@ ${BRAND.appIcon ? `<link rel="icon" href="${esc(BRAND.appIcon)}">
 </head>`;
 }
 
-function header(current) {
-  const link = (href, label, key) => `<a href="${href}"${current === key ? ' aria-current="page"' : ""}>${label}</a>`;
-  const links = [
-    link("/#services", "Services", "services"),
-    link("/acupuncture/", "Acupuncture", "acupuncture"),
-    link("/#pet-care", "Pet care", "petcare"),
-    link("/#team", "Our vets", "team"),
-    link("/#contact", "Contact", "contact"),
-  ].join("\n");
+function header(pathName) {
+  // Menu items come from links.everyPage.menu; the one for the current page is marked.
+  const links = MENU.map((m) => `<a ${href(m)}${m.url.trim() === pathName ? ' aria-current="page"' : ""}>${esc(m.text)}</a>`).join("\n");
   return `<a class="skip" href="#main">Skip to content</a>
 <div class="topbar">
   <div class="wrap">
     <div class="topbar__group">
       <span>${icon("clock")}${esc(hoursSummary())}</span>
-      <a class="topbar__hide-sm" href="${esc(clinic.mapsUrl)}">${icon("pin")}${esc(clinic.address.line1)}, ${esc(clinic.address.locality)}</a>
+      <a class="topbar__hide-sm" ${href(LINK.topBarAddress)}>${icon("pin")}${esc(clinic.address.line1)}, ${esc(clinic.address.locality)}</a>
     </div>
     <div class="topbar__group topbar__hide-sm">
       <a href="${mail}">${icon("mail")}${esc(clinic.email)}</a>
@@ -131,13 +186,13 @@ ${links}
     </nav>
     <div class="header__actions">
       <a class="btn btn--outline" href="${tel}">${icon("phone")}${esc(clinic.phone)}</a>
-      <a class="btn btn--book" href="${esc(clinic.bookingUrl)}">${icon("calendar")}Book online</a>
+      <a class="btn btn--book" ${href(LINK.headerBook)}>${icon("calendar")}${esc(LINK.headerBook.text)}</a>
       <button class="menu-btn" type="button" aria-expanded="false" aria-controls="mobile-nav" aria-label="Open menu">${icon("menu")}</button>
     </div>
   </div>
   <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile">
 ${links}
-    <a href="${tel}">Call ${esc(clinic.phone)}</a>
+    <a href="${tel}">${esc(LINK.phoneMenuCall.text)} ${esc(clinic.phone)}</a>
   </nav>
 </header>`;
 }
@@ -162,26 +217,26 @@ function footer() {
     </div>
     <div class="footer__col">
       <span class="footer__title">More</span>
-      <a href="${esc(clinic.bookingUrl)}">Book online</a>
-      <a href="${esc(clinic.facebookUrl)}">Facebook</a>
-      <a href="/privacy/">Privacy</a>
+      <a ${href(LINK.footerBook)}>${esc(LINK.footerBook.text)}</a>
+      <a ${href(LINK.footerFacebook)}>${esc(LINK.footerFacebook.text)}</a>
+      <a ${href(LINK.footerPrivacy)}>${esc(LINK.footerPrivacy.text)}</a>
       <button class="btn btn--ghost install-btn" type="button" hidden>${icon("download")}Install the app</button>
     </div>
   </div>
   <div class="footer__legal"><div class="wrap"><span>© ${year} ${esc(clinic.legalName)}</span><span>${esc(SITE.replace(/^https?:\/\//, ""))}</span></div></div>
 </footer>
 <div class="action-bar" role="region" aria-label="Quick actions">
-  <a class="btn btn--primary" href="${tel}">${icon("phone")}Call</a>
-  <a class="btn btn--book" href="${esc(clinic.bookingUrl)}">${icon("calendar")}Book online</a>
+  <a class="btn btn--primary" href="${tel}">${icon("phone")}${esc(LINK.phoneBarCall.text)}</a>
+  <a class="btn btn--book" ${href(LINK.phoneBarBook)}>${icon("calendar")}${esc(LINK.phoneBarBook.text)}</a>
 </div>
 <script src="/app.js?v=${ASSET_V}" defer></script>
 </body>
 </html>`;
 }
 
-const page = (meta, current, main) => `${head(meta)}
+const page = (meta, main) => `${head(meta)}
 <body data-install="${C.settings.showInstallButton ? "on" : "off"}">
-${header(current)}
+${header(meta.pathName)}
 <main id="main">
 ${main}
 </main>
@@ -222,8 +277,8 @@ function homePage() {
       <h1>${esc(C.hero.title)}</h1>
       <p>${esc(C.hero.text)}</p>
       <div class="btn-row">
-        <a class="btn btn--book btn--lg" href="${esc(clinic.bookingUrl)}">${icon("calendar")}Book an appointment</a>
-        <a class="btn btn--primary btn--lg" href="${tel}">${icon("phone")}Call ${esc(clinic.phone)}</a>
+        <a class="btn btn--book btn--lg" ${href(HOME.heroBook)}>${icon("calendar")}${esc(HOME.heroBook.text)}</a>
+        <a class="btn btn--primary btn--lg" href="${tel}">${icon("phone")}${esc(HOME.heroCall.text)} ${esc(clinic.phone)}</a>
       </div>
       <div class="trust">
         <span>${icon("check")}${esc(clinic.facebookRating)}</span>
@@ -236,10 +291,10 @@ function homePage() {
 
 <section class="quick" aria-label="Quick actions">
   <div class="wrap quick__grid">
-    <a href="${esc(clinic.bookingUrl)}"><span class="quick__icon quick__icon--book">${icon("calendar")}</span><span><strong>Book online</strong><small>Pick a time that suits you</small></span></a>
-    <a href="${tel}"><span class="quick__icon">${icon("phone")}</span><span><strong>Call ${esc(clinic.phone)}</strong><small>Speak to the clinic</small></span></a>
-    <a href="${esc(clinic.mapsUrl)}"><span class="quick__icon">${icon("pin")}</span><span><strong>Get directions</strong><small>${esc(clinic.address.locality)}, ${esc(clinic.address.country)}</small></span></a>
-    <a href="${mail}"><span class="quick__icon">${icon("mail")}</span><span><strong>Email us</strong><small>${esc(clinic.email)}</small></span></a>
+    <a ${href(HOME.quickBook)}><span class="quick__icon quick__icon--book">${icon("calendar")}</span><span><strong>${esc(HOME.quickBook.text)}</strong><small>${esc(HOME.quickBook.smallText)}</small></span></a>
+    <a href="${tel}"><span class="quick__icon">${icon("phone")}</span><span><strong>${esc(HOME.quickCall.text)} ${esc(clinic.phone)}</strong><small>${esc(HOME.quickCall.smallText)}</small></span></a>
+    <a ${href(HOME.quickDirections)}><span class="quick__icon">${icon("pin")}</span><span><strong>${esc(HOME.quickDirections.text)}</strong><small>${esc(clinic.address.locality)}, ${esc(clinic.address.country)}</small></span></a>
+    <a href="${mail}"><span class="quick__icon">${icon("mail")}</span><span><strong>${esc(HOME.quickEmail.text)}</strong><small>${esc(clinic.email)}</small></span></a>
   </div>
 </section>
 
@@ -252,8 +307,8 @@ function homePage() {
         <p>${esc(ac.homeTeaser)}</p>
         <ul class="ticks">${ac.helpsWith.map((x) => `<li>${icon("check")}${esc(x)}</li>`).join("")}</ul>
         <div class="btn-row">
-          <a class="btn btn--book" href="${esc(clinic.bookingUrl)}">Book an acupuncture session</a>
-          <a class="btn btn--ghost" href="/acupuncture/">How acupuncture works ${icon("arrow")}</a>
+          <a class="btn btn--book" ${href(HOME.acupunctureBook)}>${esc(HOME.acupunctureBook.text)}</a>
+          <a class="btn btn--ghost" ${href(HOME.acupunctureMore)}>${esc(HOME.acupunctureMore.text)} ${icon("arrow")}</a>
         </div>
       </div>
       ${photo(ac.photo, ac.photoAlt, "(max-width: 760px) 92vw, 480px", 'loading="lazy"')}
@@ -265,10 +320,10 @@ function homePage() {
   <div class="wrap">
     <div class="section-head">
       <div><h2>Our services</h2><p>Everything your dog, cat or small pet needs, from the first puppy jab to care in later life.</p></div>
-      <a href="${esc(clinic.bookingUrl)}" style="font-weight: 600">Book any service →</a>
+      <a ${href(HOME.servicesBook)} style="font-weight: 600">${esc(HOME.servicesBook.text)} →</a>
     </div>
     <div class="grid grid--services">
-${C.services.filter((s) => s.show !== false).map((s) => `      <div class="card${s.featured ? " card--featured" : ""}"><h3>${esc(s.title)}</h3><p>${esc(s.text)}</p>${s.link ? `<a href="${esc(s.link)}">Learn more →</a>` : ""}</div>`).join("\n")}
+${C.services.filter((s) => s.show !== false).map((s) => `      <div class="card${s.featured ? " card--featured" : ""}"><h3>${esc(s.title)}</h3><p>${esc(s.text)}</p>${s.link && s.link.trim() ? `<a href="${esc(s.link.trim())}">${esc(s.linkText || "Learn more")} →</a>` : ""}</div>`).join("\n")}
     </div>
   </div>
 </section>
@@ -295,8 +350,8 @@ ${C.vets.map((v) => `      <div class="vet">${photo(v.photo, v.name, "112px", 'l
   <div class="wrap">
     <div class="section-head"><div><h2>Two clinics, one team</h2><p>${esc(clinic.name)} and ${esc(C.sisterClinic.name)} are both run by ${C.vets.map((v) => esc(v.name)).join(" and ")}, so you can visit whichever is nearer.</p></div></div>
     <div class="grid grid--two">
-      <div class="clinic clinic--here"><span class="eyebrow">You are here</span><h3>${esc(clinic.name)}, ${esc(clinic.address.locality)}</h3><p>${esc(clinic.address.line1)}, ${esc(clinic.address.locality)}<br>${esc(clinic.phone)} · ${esc(clinic.email)}</p><a href="${esc(clinic.bookingUrl)}">Book at ${esc(clinic.name)} →</a></div>
-      <div class="clinic"><span class="eyebrow">${esc(C.sisterClinic.badge)}</span><h3>${esc(C.sisterClinic.name)}, ${esc(C.sisterClinic.place)}</h3><p>${esc(C.sisterClinic.address)}<br>${esc(C.sisterClinic.phone)} · ${esc(C.sisterClinic.email)}</p><a href="${esc(C.sisterClinic.url)}">Visit ${esc(C.sisterClinic.name.replace(" Animal Clinic", ""))} →</a></div>
+      <div class="clinic clinic--here"><span class="eyebrow">You are here</span><h3>${esc(clinic.name)}, ${esc(clinic.address.locality)}</h3><p>${esc(clinic.address.line1)}, ${esc(clinic.address.locality)}<br>${esc(clinic.phone)} · ${esc(clinic.email)}</p><a ${href(HOME.thisClinicBook)}>${esc(HOME.thisClinicBook.text)} →</a></div>
+      <div class="clinic"><span class="eyebrow">${esc(C.sisterClinic.badge)}</span><h3>${esc(C.sisterClinic.name)}, ${esc(C.sisterClinic.place)}</h3><p>${esc(C.sisterClinic.address)}<br>${esc(C.sisterClinic.phone)} · ${esc(C.sisterClinic.email)}</p><a ${href(HOME.sisterClinic)}>${esc(HOME.sisterClinic.text)} →</a></div>
     </div>
   </div>
 </section>
@@ -316,34 +371,34 @@ ${C.faq.map((f, i) => `    <details${i === 0 ? " open" : ""}><summary>${esc(f.q)
       <a class="contact__phone" href="${tel}">${esc(clinic.phone)}</a>
       <a href="${mail}">${esc(clinic.email)}</a>
       <dl class="hours">${C.hours.map((h) => `<dt>${esc(h.days)}</dt><dd>${hoursText(h)}</dd>`).join("")}</dl>
-      <div class="btn-row"><a class="btn btn--book" href="${esc(clinic.bookingUrl)}">${icon("calendar")}Book online</a></div>
+      <div class="btn-row"><a class="btn btn--book" ${href(HOME.contactBook)}>${icon("calendar")}${esc(HOME.contactBook.text)}</a></div>
     </div>
     <div class="map-card">
       ${icon("pin")}
       <h3>Find us in ${esc(clinic.address.locality)}</h3>
       <p>${esc(fullAddress)}</p>
-      <a class="btn btn--primary" href="${esc(clinic.mapsUrl)}">Open in Google Maps</a>
+      <a class="btn btn--primary" ${href(HOME.contactMap)}>${esc(HOME.contactMap.text)}</a>
     </div>
   </div>
 </section>`;
-  return page({ title: `${clinic.name} | Vet clinic in ${clinic.address.locality}, Malta`, description: clinic.description, pathName: "/" }, "home", main);
+  return page({ title: `${clinic.name} | Vet clinic in ${clinic.address.locality}, Malta`, description: clinic.description, pathName: "/" }, main);
 }
 
 function acupuncturePage() {
   const ac = C.acupuncture;
   const teresa = C.vets[1];
   const fees = ac.fees && ac.fees.length
-    ? `<div class="fees"><h2 style="font-size: 1.6rem">Fees</h2>${ac.fees.map((f) => `<div class="fees__row"><span>${esc(f.label)}</span><strong>${esc(f.price)}</strong></div>`).join("")}<a class="btn btn--book" href="${esc(clinic.bookingUrl)}">Book now</a></div>`
+    ? `<div class="fees"><h2 style="font-size: 1.6rem">Fees</h2>${ac.fees.map((f) => `<div class="fees__row"><span>${esc(f.label)}</span><strong>${esc(f.price)}</strong></div>`).join("")}<a class="btn btn--book" ${href(ACU.feesBook)}>${esc(ACU.feesBook.text)}</a></div>`
     : "";
   const main = `<section class="page-hero">
   <div class="wrap">
     <div class="page-hero__copy">
-      <span class="crumbs"><a href="/">Home</a> / Acupuncture</span>
+      <span class="crumbs"><a ${href(ACU.breadcrumbHome)}>${esc(ACU.breadcrumbHome.text)}</a> / Acupuncture</span>
       <h1>${esc(ac.title)}</h1>
       <p>${esc(ac.intro)}</p>
       <div class="btn-row">
-        <a class="btn btn--book btn--lg" href="${esc(clinic.bookingUrl)}">Book an acupuncture consultation</a>
-        <a class="btn btn--ghost btn--lg" href="${tel}">Ask us first: ${esc(clinic.phone)}</a>
+        <a class="btn btn--book btn--lg" ${href(ACU.heroBook)}>${esc(ACU.heroBook.text)}</a>
+        <a class="btn btn--ghost btn--lg" href="${tel}">${esc(ACU.heroCall.text)} ${esc(clinic.phone)}</a>
       </div>
     </div>
     ${photo(ac.photo, ac.photoAlt, "(max-width: 760px) 92vw, 520px", 'fetchpriority="high"')}
@@ -389,10 +444,10 @@ ${ac.faq.map((f, i) => `      <details${i === 0 ? " open" : ""}><summary>${esc(f
 <section class="cta-band">
   <div class="wrap">
     <div><h2>Wondering if acupuncture could help?</h2><p>${esc(clinic.name)} · ${esc(clinic.address.line1)}, ${esc(clinic.address.locality)} · ${esc(clinic.email)}</p></div>
-    <div class="btn-row"><a class="btn btn--book btn--lg" href="${esc(clinic.bookingUrl)}">Book online</a><a class="btn btn--ghost btn--lg" href="${tel}">Call ${esc(clinic.phone)}</a></div>
+    <div class="btn-row"><a class="btn btn--book btn--lg" ${href(ACU.bottomBook)}>${esc(ACU.bottomBook.text)}</a><a class="btn btn--ghost btn--lg" href="${tel}">${esc(ACU.bottomCall.text)} ${esc(clinic.phone)}</a></div>
   </div>
 </section>`;
-  return page({ title: `Veterinary acupuncture in Malta | ${clinic.name}`, description: ac.intro, pathName: "/acupuncture/" }, "acupuncture", main);
+  return page({ title: `Veterinary acupuncture in Malta | ${clinic.name}`, description: ac.intro, pathName: "/acupuncture/" }, main);
 }
 
 function privacyPage() {
@@ -400,22 +455,23 @@ function privacyPage() {
   <h1>Privacy</h1>
   <p>This website does not use cookies, analytics or advertising trackers, and it does not collect personal information. Fonts and images are served from this website itself.</p>
   <h2>Booking appointments</h2>
-  <p>Online bookings are handled by our booking system, Provet Cloud, at <a href="${esc(clinic.bookingUrl)}">${esc(clinic.bookingUrl.replace(/^https?:\/\//, ""))}</a>. Information you enter there is processed under Provet's privacy policy and ours as your veterinary practice.</p>
+  <p>Online bookings are handled by our booking system, Provet Cloud, at <a ${href(OTHER.privacyBooking)}>${esc(OTHER.privacyBooking.text)}</a>. Information you enter there is processed under Provet's privacy policy and ours as your veterinary practice.</p>
   <h2>Installing the app</h2>
   <p>If you add ${esc(clinic.name)} to your home screen, your phone stores copies of these pages so they open quickly and work offline. No personal data is stored.</p>
   <h2>Contact</h2>
   <p>For any privacy question, email <a href="${mail}">${esc(clinic.email)}</a> or call <a href="${tel}">${esc(clinic.phone)}</a>.</p>
 </div>`;
-  return page({ title: `Privacy | ${clinic.name}`, description: `How ${clinic.name} handles your information.`, pathName: "/privacy/" }, "privacy", main);
+  return page({ title: `Privacy | ${clinic.name}`, description: `How ${clinic.name} handles your information.`, pathName: "/privacy/" }, main);
 }
 
 function simplePage(title, body, pathName) {
-  return page({ title: `${title} | ${clinic.name}`, description: clinic.description, pathName }, "", `<div class="wrap text-page">${body}</div>`);
+  return page({ title: `${title} | ${clinic.name}`, description: clinic.description, pathName }, `<div class="wrap text-page">${body}</div>`);
 }
 
 function bookRedirect() {
-  // Short link used by the app's "Book" shortcut: /book/ forwards to the booking system.
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Booking…</title><meta name="robots" content="noindex"><meta http-equiv="refresh" content="0; url=${esc(clinic.bookingUrl)}"><script>location.replace(${JSON.stringify(clinic.bookingUrl)})</script></head><body><p><a href="${esc(clinic.bookingUrl)}">Continue to online booking</a></p></body></html>`;
+  // Short link used by the app's "Book" shortcut: /book/ forwards to links.app.bookShortcut.url.
+  const to = APP.bookShortcut.url.trim();
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Booking…</title><meta name="robots" content="noindex"><meta http-equiv="refresh" content="0; url=${esc(to)}"><script>location.replace(${JSON.stringify(to).replace(/</g, "\\u003c")})</script></head><body><p><a href="${esc(to)}">Continue to online booking</a></p></body></html>`;
 }
 
 // ---------- app files ----------
@@ -444,8 +500,8 @@ function manifest() {
           { src: "/assets/icons/maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
         ],
     shortcuts: [
-      { name: "Book an appointment", short_name: "Book", url: "/book/", icons: [{ src: BRAND.appIcon || "/assets/icons/icon-192.png", sizes: "192x192" }] },
-      { name: "Acupuncture", short_name: "Acupuncture", url: "/acupuncture/", icons: [{ src: BRAND.appIcon || "/assets/icons/icon-192.png", sizes: "192x192" }] },
+      { name: APP.bookShortcut.text, short_name: APP.bookShortcut.shortText, url: "/book/", icons: [{ src: BRAND.appIcon || "/assets/icons/icon-192.png", sizes: "192x192" }] },
+      { name: APP.acupunctureShortcut.text, short_name: APP.acupunctureShortcut.shortText, url: APP.acupunctureShortcut.url.trim(), icons: [{ src: BRAND.appIcon || "/assets/icons/icon-192.png", sizes: "192x192" }] },
     ],
   }, null, 2);
 }
@@ -593,7 +649,7 @@ write("index.html", homePage());
 write("acupuncture/index.html", acupuncturePage());
 write("privacy/index.html", privacyPage());
 write("offline/index.html", simplePage("You're offline", `<h1>You're offline</h1><p>We can't load this page without an internet connection. You can still call us on <a href="${tel}">${esc(clinic.phone)}</a>.</p><p style="margin-top: 16px"><strong>Opening hours</strong><br>${C.hours.map((h) => `${esc(h.days)}: ${hoursText(h)}`).join("<br>")}</p>`, "/offline/"));
-write("404.html", simplePage("Page not found", `<h1>Page not found</h1><p>Sorry, that page doesn't exist. <a href="/">Go to the home page</a> or <a href="${esc(clinic.bookingUrl)}">book an appointment</a>.</p>`, "/404"));
+write("404.html", simplePage("Page not found", `<h1>Page not found</h1><p>Sorry, that page doesn't exist. <a ${href(OTHER.notFoundHome)}>${esc(OTHER.notFoundHome.text)}</a> or <a ${href(OTHER.notFoundBook)}>${esc(OTHER.notFoundBook.text)}</a>.</p>`, "/404"));
 write("book/index.html", bookRedirect());
 write("manifest.webmanifest", manifest());
 write("robots.txt", `User-agent: *\nAllow: /\n\nSitemap: ${SITE}/sitemap.xml\n`);

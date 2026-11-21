@@ -72,13 +72,14 @@ section, so it's safe to leave it there.
 |---|---|---|
 | `settings` | Web address, language, app colour, install button. | `showInstallButton`: `false` for now; set to `true` in the app phase (section 8). `themeColor` is the colour of the phone's top bar when the app is open. |
 | `logo` | Logo in the header, app icon on phones. | See section 5. |
-| `clinic` | Name, phone, email, address, booking link, Facebook link, map link, Facebook rating line. | `phone` is how the number is **shown**; `phoneInternational` is what phones **dial** (keep the `+356`). Update `facebookRating` now and then; it's shown as written. |
+| `clinic` | Name, phone, email, address, Facebook rating line. | `phone` is how the number is **shown**; `phoneInternational` is what phones **dial** (keep the `+356`). Every Call and Email button uses these. Update `facebookRating` now and then; it's shown as written. |
+| `links` | **Every link and button on the site**, each with its own wording (`text`) and address (`url`), grouped by page: `everyPage` (top bar, menu, footer, phone bottom bar), `homePage`, `acupuncturePage`, `otherPages` (privacy and "page not found") and `app` (the installed app's long-press shortcuts). | Each booking button has its **own** link, so "Book an appointment", "Book online" and "Book an acupuncture session" can go to different places. A `url` can be a web address (`https://…`) or a page on this site (`/acupuncture/`, `/#contact`). Entries with `text` but no `url` are Call or Email buttons, which always use the phone and email in `clinic`. The `menu` is a list; copy an item to add a menu link. The app's acupuncture shortcut must be a page on this site. Fixed on purpose: the logo (always goes home) and the hidden "Skip to content" link for screen readers. If a link entry is missing or empty, the build stops and says which one. |
 | `hours` | Opening hours: top bar, contact section, footer, offline page, and Google's opening-hours data. | Times use 24-hour format (`"19:00"`) and are shown as 7pm. For a closed day use `"closed": true`. `schemaDays` tells Google which days a row covers (English day names). |
 | `emergency` | The emergency text. | The same message also appears in the first FAQ and the "Summer heat" tip; update those too if it changes. |
-| `sisterClinic` | The Vetcare card in "Two clinics, one team". | |
+| `sisterClinic` | The Vetcare card in "Two clinics, one team". | Its "Visit Vetcare" link is `links.homePage.sisterClinic`. |
 | `hero` | The big headline, small label and intro text at the top of the home page. | |
 | `vets` | Names, roles, bios and photos. | Keep **Dr. Andrew first and Dr. Teresa second**: the home-page photo pair and the acupuncture page rely on this order (section 6). An empty `bio` (`""`) is simply hidden. |
-| `services` | The service cards. | `"show": false` hides a service without deleting it. `"featured": true` gives a card the purple outline. `"link"` adds a "Learn more" link. |
+| `services` | The service cards. | `"show": false` hides a service without deleting it. `"featured": true` gives a card the purple outline. `"link"` adds a link at the bottom of the card; `"linkText"` is its wording ("Learn more" if left out). |
 | `maltaTips` | The four "Pet care in Malta" cards. | `icon` can be `bug`, `sun`, `plane` or `paw`. |
 | `faq` | Home-page questions. | The first one is shown open. |
 | `acupuncture` | Everything on the acupuncture page plus the acupuncture block on the home page. | `homeTeaser` is the home-page text. `fees` starts empty, so no fees box is shown; add rows like `{ "label": "Initial consultation", "price": "€XX" }` and the box appears with a Book button. |
@@ -135,14 +136,15 @@ ask Claude to redraw the arrows**, otherwise they'll point at the wrong spots.
 - **Works on every screen.** On phones there's a menu button and a **Call / Book bar** fixed at the
   bottom of the screen.
 - **App-ready:** an app manifest, app icons and offline support. On Android, long-pressing the
-  installed app icon shows **Book** and **Acupuncture** shortcuts (`/book/` forwards to Provet).
+  installed app icon shows **Book** and **Acupuncture** shortcuts (`/book/` forwards to the link set in
+  `links.app.bookShortcut`).
 - **Opens offline:** pages already visited still load; anything else shows a page with the phone
   number and opening hours.
 - **Google-friendly:** page titles and descriptions, a sitemap, and the clinic's address, phone and
   opening hours in the format Google uses for local search results.
 - **Privacy-friendly:** no cookies, no analytics, no trackers, and fonts and photos served from the
   site itself, so **no cookie banner is needed**. A short Privacy page explains this.
-- **Booking stays on Provet** (`my.provet.com/pawmedics-limited`), so appointments, records and
+- **Booking stays on Provet** (`my.provet.com/pawmedics-limited/pawmedics-limited`), so appointments, records and
   invoices aren't duplicated and no client data is stored by the website.
 - **Emergency handling:** the clinic has no out-of-hours service, so the site directs people to the
   government's National Veterinary Emergency Service clinic in Reggie Miller Square, Fgura.
@@ -197,5 +199,9 @@ to the home screen.
   with an offline fallback, and assets are cache-first and precached. Old caches are removed on activate.
 - `_headers` (used by Netlify and Cloudflare Pages) disables caching of `sw.js` and sets basic security headers.
 - Logo and app icon are fetched at build time into `dist/assets/brand/`; on failure the remote URL is used.
+- No link is hard-coded in the templates except the logo (`/`) and the skip link (`#main`). Every other
+  `href` comes from `links` in `content/site.json`, or from `clinic.phoneInternational` / `clinic.email`
+  for `tel:` and `mailto:` links. `build.mjs` checks every `links` entry up front and exits with a
+  plain-English error if one is missing or empty.
 - The arrow overlay is an SVG on a fixed 380 × 352 grid over an `aspect-ratio` box, with
   `object-position: 50% 25%` on both photos.
