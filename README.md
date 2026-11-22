@@ -143,7 +143,8 @@ The photos live in `src/assets/img/`. Each comes in two sizes (`-480.webp` for p
 
 The clinic photos came from `C:\Projects\PawMedics\Assets`. Where a photo had a PawMedics frame
 (a purple border with the logo, or a purple fade with the logo along the bottom), the frame was cut
-off and only the photo itself is used. Photos are **not** preloaded for offline use (to keep each new
+off and only the photo itself is used. For `dr-teresa-acupuncture-1` the dog's face sat inside the fade, so the photo was kept down to
+just above the logo and the purple tint was reversed (the fade is a straight-line purple gradient, so it can be undone). Photos are **not** preloaded for offline use (to keep each new
 visitor's download, and Netlify credits, small); each is saved the first time it's viewed.
 
 They were cropped and lightly brightened for the web, and are kept small so pages load quickly.
