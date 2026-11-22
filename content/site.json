@@ -3,18 +3,21 @@
     "readMe": "This file holds ALL the clinic details for the website and the app. Full guide: README.md (section 4). This _howTo section is ignored by the website, so it is safe to leave here.",
     "editingRules": "Only change text INSIDE the quotes \"...\". Keep quotes, colons and commas. true/false have no quotes. When adding a list item, copy an existing { ... } item and put a comma between items but not after the last one. Check the file at jsonlint.com before publishing. If the file has a mistake, the build stops and the live site stays as it was.",
     "settings": "showInstallButton: false for now; true shows an \"Install the app\" button (app phase). themeColor = colour of the phone top bar in the app.",
-    "logo": "Upload the logo to imgbb.com, open it, choose \"Direct links\" and paste the link that starts with https://i.ibb.co/ (ending .png or .jpg) into logo.url. The normal https://ibb.co/ page link will NOT work. For the phone app icon, upload a SQUARE 512 x 512 PNG and paste its direct link into logo.appIconUrl. Set showNameNextToLogo to false if the logo already contains the name. alt = description for screen readers. Leave fields empty (\"\") to keep the placeholder paw. The build saves a copy of the images inside the site; if it cannot download them (wrong link, or built somewhere without internet access, e.g. by Claude), it still finishes and links to ImgBB directly instead (works, but not offline).",
+    "logo": "The logo mark (cross and paw) is saved in the site at src/assets/icons/logo-mark.png and set in logo.url as \"/assets/icons/logo-mark.png\". The app icons and browser-tab icon are in src/assets/icons (made from the PawMedics square logo). To use a different logo instead, either put a file in src/assets/brand and give its path starting with /, or upload it to imgbb.com, open it, choose \"Direct links\" and paste the link that starts with https://i.ibb.co/ (ending .png or .jpg) into logo.url. The normal https://ibb.co/ page link will NOT work. For the phone app icon, upload a SQUARE 512 x 512 PNG and paste its direct link into logo.appIconUrl. Set showNameNextToLogo to false if the logo already contains the name. alt = description for screen readers. Leave fields empty (\"\") to keep the placeholder paw. The build saves a copy of the images inside the site; if it cannot download them (wrong link, or built somewhere without internet access, e.g. by Claude), it still finishes and links to ImgBB directly instead (works, but not offline).",
     "clinic": "address: line1 = number and street, then locality, postcode and country (postcode is shown in the full address and given to Google). phone = how the number is shown; phoneInternational = what phones dial (keep +356).",
     "links": "EVERY link and button on the site, grouped by page (everyPage = top bar, menu, footer and the phone's bottom Call/Book bar). Each has its own text and url, so each booking button can go to a different place: change one and the others stay as they are. A url can be a full web address (https://...) or a page on this site (/acupuncture/, /#contact). Entries with text but no url are Call or Email buttons: they always use the phone number or email in clinic, and the number or email is shown with the text automatically (the narrow Call button in the phone's bottom bar shows the text only). topBarAddress is the address shown in the top bar (kept short so the bar fits on one line); the full address comes from clinic.address. Its url is also given to Google as the clinic's map. The other clinic is linked from three places, each set separately: topBarSisterClinic (top bar on every page; hidden on phones to save space), heroSisterClinic (the line under the main booking buttons on the home page) and homePage.sisterClinic (the Vetcare card in \"Two clinics, one team\"). footerFacebook's url is also given to Google as the clinic's Facebook page. The menu is a list: copy an item to add a menu link. app = the shortcuts shown when the installed app's icon is long-pressed on Android; the acupuncture shortcut must be a page on this site. Two links are fixed on purpose: the logo always goes to the home page, and the hidden \"Skip to content\" link for screen readers.",
     "hours": "24-hour times, e.g. \"19:00\" (shown as 7pm). For a closed day use \"closed\": true. schemaDays = English day names the row covers (used by Google). Hours appear in the top bar, contact section, footer and offline page.",
     "notices": "Messages shown in a bar at the very top of every page, for example Christmas hours or a closure. Each notice appears by itself on its \"from\" date and disappears by itself after its \"until\" date (Malta time), so notices can be added weeks ahead and need no extra publish to switch on or off. Dates are written year-month-day, e.g. \"2026-12-24\". \"show\": false switches a notice off completely. linkText and linkUrl are optional (both or neither). Several notices can be listed; all that are in date show. Copy an existing { ... } item to add one.",
     "emergency": "The same message also appears in the first FAQ and in the \"Summer heat\" tip; update those too if it changes.",
-    "vets": "Keep Dr. Andrew FIRST and Dr. Teresa SECOND: the home-page photo pair with the \"Vet / Not Vets\" arrows and the acupuncture page depend on this order. Type a short bio in \"bio\"; an empty bio is hidden. photo = image name in src/assets/img. If a photo is replaced, ask Claude to redraw the arrows.",
-    "reviews": "The Google rating and the review cards on the home page. rating and count are typed in by hand, so update them now and then from Google (they also show under the main booking buttons). Each item is one review card: name (first name and initial), stars (1 to 5) and text. Keep the reviewer's own words; where a review is shortened, mark the missing part with … . Add, remove or reorder items freely; set \"show\": false to hide the whole section. The links to Google are links.homePage.heroReviews and links.homePage.reviewsAll.",
+    "vets": "Keep Dr. Andrew FIRST and Dr. Teresa SECOND: the home-page photo pair with the \"Vet / Not Vets\" arrows and the acupuncture page depend on this order. Further vets (e.g. Dr. Adam) go after them and appear in \"Meet our vets\". \"partner\": true marks the clinic partners (named in \"Two clinics, one team\"). Bios starting \"[Placeholder bio]\" are dummy text to replace; an empty bio is hidden. photo = image name in src/assets/img. If Dr. Andrew's or Dr. Teresa's photo is replaced, ask Claude to redraw the arrows.",
+    "bookOnline": "The \"What you can book online\" cards on the home page. Each card has its own button text and link (linkText, linkUrl), so if Provet gives a direct link for a booking type it can go here. notSure is the line under the cards; the phone number and email are added automatically. \"show\": false hides the section.",
+    "about": "The \"About PawMedics\" section on the home page: paragraphs (one per item), a photo with its caption. \"show\": false hides it.",
+    "gallery": "The \"Care in action\" photo strip on the home page. Each item = photo name in src/assets/img, alt (description for screen readers) and caption. Add, remove or reorder freely; \"show\": false hides it.",
+    "reviews": "\"show\": false on a single review hides just that card (Keith C. is kept that way so a 3-across layout stays even). The Google rating and the review cards on the home page. rating and count are typed in by hand, so update them now and then from Google (they also show under the main booking buttons). Each item is one review card: name (first name and initial), stars (1 to 5) and text. Keep the reviewer's own words; where a review is shortened, mark the missing part with … . Add, remove or reorder items freely; set \"show\": false to hide the whole section. The links to Google are links.homePage.heroReviews and links.homePage.reviewsAll.",
     "services": "\"show\": true/false shows or hides a service (set false for anything the Swatar clinic does not offer). \"featured\": true = purple outline. \"link\" adds a link at the bottom of the card; \"linkText\" is its wording (\"Learn more\" if left out).",
     "maltaTips": "icon can be bug, sun, plane or paw.",
     "faq": "Home-page questions; the first one is shown open.",
-    "acupuncture": "homeTeaser = text in the home-page acupuncture block. fees is empty, so no fees box shows. Add rows like { \"label\": \"Initial consultation\", \"price\": \"€XX\" } and the fees box appears automatically with a Book button (its wording and link are links.acupuncturePage.feesBook)."
+    "acupuncture": "photo = picture in the home-page acupuncture block; pagePhoto = picture at the top of the acupuncture page; gallery = the dogs / cats / rabbits photos on the acupuncture page. homeTeaser = text in the home-page acupuncture block. fees is empty, so no fees box shows. Add rows like { \"label\": \"Initial consultation\", \"price\": \"€XX\" } and the fees box appears automatically with a Book button (its wording and link are links.acupuncturePage.feesBook)."
   },
   "settings": {
     "siteUrl": "https://pawmedicsmalta.com",
@@ -23,7 +26,7 @@
     "themeColor": "#52215F"
   },
   "logo": {
-    "url": "",
+    "url": "/assets/icons/logo-mark.png",
     "appIconUrl": "",
     "alt": "PawMedics logo",
     "showNameNextToLogo": true
@@ -159,20 +162,105 @@
     "title": "Gentle, thorough care for the pets you love",
     "text": "Consultations, vaccinations, surgery and diagnostics, together with veterinary acupuncture with Dr. Teresa Gatt. Book online in under a minute."
   },
+  "bookOnline": {
+    "show": true,
+    "title": "What you can book online",
+    "text": "Choose the type of visit when you book. Each one goes straight to our online booking.",
+    "items": [
+      {
+        "title": "Consultation",
+        "text": "A visit with one of our vets to check your pet's health, look at a new problem or follow up on treatment.",
+        "linkText": "Book a consultation",
+        "linkUrl": "https://my.provet.com/pawmedics-limited/pawmedics-limited"
+      },
+      {
+        "title": "Nurse clinic",
+        "text": "Routine care with our nursing team, such as nail clips, weight checks and advice on everyday care.",
+        "linkText": "Book a nurse clinic",
+        "linkUrl": "https://my.provet.com/pawmedics-limited/pawmedics-limited"
+      },
+      {
+        "title": "Vaccination",
+        "text": "Puppy and kitten courses and yearly boosters, with a health check at the same visit.",
+        "linkText": "Book a vaccination",
+        "linkUrl": "https://my.provet.com/pawmedics-limited/pawmedics-limited"
+      }
+    ],
+    "notSure": "Not sure which to choose? Call or email us and we'll help."
+  },
+  "about": {
+    "show": true,
+    "title": "About PawMedics",
+    "paragraphs": [
+      "PawMedics offers compassionate veterinary care for small animals from our practice in Swatar. Since opening in 2025 we have looked after dogs, cats, rabbits and other small pets, with consultations, vaccinations, acupuncture, at-home euthanasia and more.",
+      "In 2026 Vetcare Animal Clinic in San Ġwann joined us. Vetcare clients still see the same trusted team and familiar faces, with continued improvements ahead.",
+      "We also love being part of the community, from school careers days to helping young future vets meet their first patients."
+    ],
+    "photo": "dr-teresa-community",
+    "photoAlt": "Dr. Teresa Gatt and a schoolgirl listening to a dog's heartbeat with a stethoscope",
+    "caption": "Dr. Teresa at Careers Day at St. Dorothy's School"
+  },
+  "gallery": {
+    "show": true,
+    "title": "Care in action",
+    "text": "Everyday moments with our patients, their owners and the community.",
+    "items": [
+      {
+        "photo": "dr-adam-at-work",
+        "alt": "Dr. Adam holding a small chihuahua while a nurse checks its paw",
+        "caption": "Small patient, big care."
+      },
+      {
+        "photo": "dr-andrew-at-work",
+        "alt": "Dr. Andrew bandaging a black dog's leg while a colleague holds it",
+        "caption": "Teamwork on every bandage."
+      },
+      {
+        "photo": "dr-teresa-at-work-1",
+        "alt": "Dr. Teresa and a nurse examining a young brown puppy",
+        "caption": "One little puppy, two pairs of caring hands."
+      },
+      {
+        "photo": "dr-andrew-community",
+        "alt": "Dr. Andrew helping a young boy examine a soft toy",
+        "caption": "Every future vet starts somewhere."
+      },
+      {
+        "photo": "dr-teresa-at-work-2",
+        "alt": "Dr. Teresa kneeling on the floor, giving treats to three cats",
+        "caption": "Word travels fast when treats are involved."
+      },
+      {
+        "photo": "cat-acupuncture",
+        "alt": "A calm tabby cat having acupuncture",
+        "caption": "Calm and relaxed during acupuncture."
+      }
+    ]
+  },
   "vets": [
     {
       "name": "Dr. Andrew Cachia",
       "role": "Partner · Veterinary surgeon",
-      "bio": "",
+      "partner": true,
+      "bio": "[Placeholder bio] A short introduction to Dr. Andrew: where he trained, what he enjoys most about vet work, and the pets waiting for him at home.",
       "photo": "dr-andrew",
       "photoAlt": "Dr. Andrew Cachia with a black-and-white dog on the examination table"
     },
     {
       "name": "Dr. Teresa Gatt",
       "role": "Partner · Veterinary surgeon · TCVM acupuncture",
-      "bio": "",
+      "partner": true,
+      "bio": "[Placeholder bio] A short introduction to Dr. Teresa: where she trained, how she came to acupuncture, and the pets waiting for her at home.",
       "photo": "dr-teresa",
       "photoAlt": "Dr. Teresa Gatt cuddling a fluffy puppy"
+    },
+    {
+      "name": "Dr. Adam",
+      "role": "Veterinary surgeon",
+      "partner": false,
+      "bio": "[Placeholder bio] A short introduction to Dr. Adam: where he trained, what he enjoys most about vet work, and why there is so often a cat on his shoulder.",
+      "photo": "dr-adam",
+      "photoAlt": "Dr. Adam in purple scrubs with a kitten sitting on his shoulder"
     }
   ],
   "reviews": {
@@ -208,6 +296,12 @@
         "text": "The staff was very professional, handled my stressed cat with great care, and explained everything thoroughly. Highly recommend this clinic!"
       },
       {
+        "name": "Mariah S.",
+        "stars": 5,
+        "text": "Dr. Adam and Nurse Cecilia were absolutely amazing throughout a very stressful situation with my dog. … Dr. Adam took the time to explain everything clearly. Nurse Cecilia was incredibly kind and gentle, always making my dog feel at ease."
+      },
+      {
+        "show": false,
         "name": "Keith C.",
         "stars": 5,
         "text": "Exceptional service and care .. its never nice going to a vet but they make it the best possible experience. Thanks for taking care of Jiro"
@@ -327,8 +421,19 @@
   "acupuncture": {
     "title": "Veterinary acupuncture in Malta",
     "intro": "Gentle, drug-free support for pain, mobility and recovery, given by Dr. Teresa Gatt at our Swatar clinic.",
-    "photo": "acupuncture",
-    "photoAlt": "Dr. Teresa Gatt giving acupuncture to a relaxed golden retriever",
+    "photo": "dr-teresa-acupuncture-2",
+    "photoAlt": "Dr. Teresa Gatt with a spaniel during an acupuncture session",
+    "pagePhoto": "dr-teresa-acupuncture-1",
+    "pagePhotoAlt": "Dr. Teresa Gatt smiling as she gives acupuncture to a relaxed spaniel",
+    "gallery": {
+      "title": "For dogs, cats and rabbits",
+      "text": "Most pets settle quickly, and many fall asleep during a session.",
+      "items": [
+        { "photo": "dog-acupuncture", "alt": "A long-haired dog asleep during acupuncture", "caption": "Dogs" },
+        { "photo": "cat-acupuncture", "alt": "A tabby cat sitting calmly with acupuncture needles", "caption": "Cats" },
+        { "photo": "rabbit-acupuncture", "alt": "A grey rabbit lying on a towel with acupuncture needles along its back", "caption": "Rabbits" }
+      ]
+    },
     "homeTeaser": "Dr. Teresa practises Traditional Chinese Veterinary Medicine (TCVM) acupuncture. It is a gentle, drug-free treatment used alongside conventional care, and is often chosen for older pets and long-term conditions.",
     "whatIsIt": [
       "Very fine, sterile needles are placed at specific points on the body to help relieve pain and support healing. Dr. Teresa uses Traditional Chinese Veterinary Medicine (TCVM) alongside modern veterinary medicine. It works with your pet's usual treatment and does not replace it.",
