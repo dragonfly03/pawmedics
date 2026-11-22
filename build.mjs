@@ -167,8 +167,18 @@ const href = (entry) => `href="${esc(entry.url.trim())}"`;
 const icon = (name, cls = "icon") => `<svg class="${cls}" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]}</svg>`;
 
 // Responsive photo: uses the 480px and 900px WebP files made from each photo.
+// Each photo address ends in ?v=<fingerprint of the file>, so when a photo is replaced (same name, new
+// picture) browsers and the offline copy fetch the new one instead of reusing the old one they saved.
+const imgV = {};
+const imgUrl = (file) => {
+  if (!(file in imgV)) {
+    const f = path.join(SRC, "assets", "img", file);
+    imgV[file] = fs.existsSync(f) ? crypto.createHash("sha256").update(fs.readFileSync(f)).digest("hex").slice(0, 8) : "0";
+  }
+  return `/assets/img/${file}?v=${imgV[file]}`;
+};
 const photo = (name, alt, sizes, attrs = "") =>
-  `<img src="/assets/img/${name}-900.webp" srcset="/assets/img/${name}-480.webp 480w, /assets/img/${name}-900.webp 900w" sizes="${sizes}" alt="${esc(alt)}" ${attrs}>`;
+  `<img src="${imgUrl(`${name}-900.webp`)}" srcset="${imgUrl(`${name}-480.webp`)} 480w, ${imgUrl(`${name}-900.webp`)} 900w" sizes="${sizes}" alt="${esc(alt)}" ${attrs}>`;
 
 // ---------- shared page parts ----------
 // Logo and app icon: set in content/site.json ("logo"). Empty = placeholder paw.
