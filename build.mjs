@@ -84,14 +84,12 @@ const HOME = {
   quickBook: L("homePage", "quickBook", "text", "smallText", "url"),
   quickCall: L("homePage", "quickCall", "text", "smallText"),
   quickDirections: L("homePage", "quickDirections", "text", "url"),
-  quickEmail: L("homePage", "quickEmail", "text"),
+  quickMessage: L("homePage", "quickMessage", "text", "smallText", "url"),
   acupunctureBook: L("homePage", "acupunctureBook", "text", "url"),
   acupunctureMore: L("homePage", "acupunctureMore", "text", "url"),
   servicesBook: L("homePage", "servicesBook", "text", "url"),
   thisClinicBook: L("homePage", "thisClinicBook", "text", "url"),
   sisterClinic: L("homePage", "sisterClinic", "text", "url"),
-  contactBook: L("homePage", "contactBook", "text", "url"),
-  contactMap: L("homePage", "contactMap", "text", "url"),
 };
 const ACU = {
   breadcrumbHome: L("acupuncturePage", "breadcrumbHome", "text", "url"),
@@ -100,6 +98,13 @@ const ACU = {
   feesBook: L("acupuncturePage", "feesBook", "text", "url"),
   bottomBook: L("acupuncturePage", "bottomBook", "text", "url"),
   bottomCall: L("acupuncturePage", "bottomCall", "text"),
+};
+const CONTACT_LINK = {
+  breadcrumbHome: L("contactPage", "breadcrumbHome", "text", "url"),
+  book: L("contactPage", "book", "text", "url"),
+  map: L("contactPage", "map", "text", "url"),
+  privacy: L("contactPage", "privacy", "text", "url"),
+  thanksHome: L("contactPage", "thanksHome", "text", "url"),
 };
 const OTHER = {
   privacyBooking: L("otherPages", "privacyBooking", "text", "url"),
@@ -161,6 +166,10 @@ if (BOOK.show !== false) {
   BOOK.items.forEach((b, i) => { if (!b.title || !b.linkText || !String(b.linkUrl || "").trim()) stop(`bookOnline item ${i + 1} needs a "title", "linkText" and "linkUrl".`); });
 }
 const PARTNERS = C.vets.filter((v) => v.partner !== false).slice(0, 2);
+// Contact page: every piece of wording must be present (a missing label would leave a blank field).
+const CP = C.contactPage || stop("contactPage is missing.");
+["title", "intro", "urgentNote", "formTitle", "button", "privacyNote", "detailsTitle", "hoursTitle", "thanksTitle", "thanksText", "privacyPageText"].forEach((k) => { if (!String(CP[k] || "").trim()) stop(`contactPage needs a "${k}".`); });
+["name", "email", "phone", "pet", "message"].forEach((k) => { if (!CP.fields || !String(CP.fields[k] || "").trim()) stop(`contactPage.fields needs a "${k}" label.`); });
 const ratingLine = `${REVIEWS.rating} on ${REVIEWS.source || "Google"} · ${REVIEWS.count} reviews`;
 const href = (entry) => `href="${esc(entry.url.trim())}"`;
 
@@ -206,7 +215,7 @@ function head({ title, description, pathName }) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>${esc(title)}</title>
-<meta name="description" content="${esc(description)}">
+<meta name="description" content="${esc(description)}">${/\/(thanks|offline)\/$|^\/404$/.test(pathName) ? '\n<meta name="robots" content="noindex">' : ""}
 <link rel="canonical" href="${url}">
 <meta name="theme-color" content="${C.settings.themeColor}">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -368,7 +377,7 @@ function homePage() {
     <a ${href(HOME.quickBook)}><span class="quick__icon quick__icon--book">${icon("calendar")}</span><span><strong>${esc(HOME.quickBook.text)}</strong><small>${esc(HOME.quickBook.smallText)}</small></span></a>
     <a href="${tel}"><span class="quick__icon">${icon("phone")}</span><span><strong>${esc(HOME.quickCall.text)} ${esc(clinic.phone)}</strong><small>${esc(HOME.quickCall.smallText)}</small></span></a>
     <a ${href(HOME.quickDirections)}><span class="quick__icon">${icon("pin")}</span><span><strong>${esc(HOME.quickDirections.text)}</strong><small>${esc(clinic.address.locality)}, ${esc(clinic.address.country)}</small></span></a>
-    <a href="${mail}"><span class="quick__icon">${icon("mail")}</span><span><strong>${esc(HOME.quickEmail.text)}</strong><small>${esc(clinic.email)}</small></span></a>
+    <a ${href(HOME.quickMessage)}><span class="quick__icon">${icon("mail")}</span><span><strong>${esc(HOME.quickMessage.text)}</strong><small>${esc(HOME.quickMessage.smallText)}</small></span></a>
   </div>
 </section>
 
@@ -478,25 +487,6 @@ ${GALLERY.items.map((g) => `      <figure>${photo(g.photo, g.alt || "", "(max-wi
     <h2 style="margin-bottom: 24px">Common questions</h2>
 ${C.faq.map((f, i) => `    <details${i === 0 ? " open" : ""}><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join("\n")}
   </div>
-</section>
-
-<section class="section" id="contact" style="padding-top: 0">
-  <div class="wrap contact">
-    <div class="contact__panel">
-      <h2>Ready when you are</h2>
-      <p>${esc(clinic.name)}, ${esc(fullAddress)}</p>
-      <a class="contact__phone" href="${tel}">${esc(clinic.phone)}</a>
-      <a href="${mail}">${esc(clinic.email)}</a>
-      <dl class="hours">${C.hours.map((h) => `<dt>${esc(h.days)}</dt><dd>${hoursText(h)}</dd>`).join("")}</dl>
-      <div class="btn-row"><a class="btn btn--book" ${href(HOME.contactBook)}>${icon("calendar")}${esc(HOME.contactBook.text)}</a></div>
-    </div>
-    <div class="map-card">
-      ${icon("pin")}
-      <h3>Find us in ${esc(clinic.address.locality)}</h3>
-      <p>${esc(fullAddress)}</p>
-      <a class="btn btn--primary" ${href(HOME.contactMap)}>${esc(HOME.contactMap.text)}</a>
-    </div>
-  </div>
 </section>`;
   return page({ title: `${clinic.name} | Vet clinic in ${clinic.address.locality}, Malta`, description: clinic.description, pathName: "/" }, main);
 }
@@ -579,7 +569,9 @@ ${ac.faq.map((f, i) => `      <details${i === 0 ? " open" : ""}><summary>${esc(f
 function privacyPage() {
   const main = `<div class="wrap text-page">
   <h1>Privacy</h1>
-  <p>This website does not use cookies, analytics or advertising trackers, and it does not collect personal information. Fonts and images are served from this website itself.</p>
+  <p>This website does not use cookies, analytics or advertising trackers. The only personal information it collects is what you choose to send us through the contact form. Fonts and images are served from this website itself.</p>
+  <h2>Contact form</h2>
+  <p>${esc(CP.privacyPageText)}</p>
   <h2>Booking appointments</h2>
   <p>Online bookings are handled by our booking system, Provet Cloud, at <a ${href(OTHER.privacyBooking)}>${esc(OTHER.privacyBooking.text)}</a>. Information you enter there is processed under Provet's privacy policy and ours as your veterinary practice.</p>
   <h2>Installing the app</h2>
@@ -588,6 +580,53 @@ function privacyPage() {
   <p>For any privacy question, email <a href="${mail}">${esc(clinic.email)}</a> or call <a href="${tel}">${esc(clinic.phone)}</a>.</p>
 </div>`;
   return page({ title: `Privacy | ${clinic.name}`, description: `How ${clinic.name} handles your information.`, pathName: "/privacy/" }, main);
+}
+
+function contactPage() {
+  const F = CP.fields;
+  const field = (name, label, type, extra = "") => `<label class="field"><span>${esc(label)}</span>${type === "textarea" ? `<textarea name="${name}" rows="6" ${extra}></textarea>` : `<input type="${type}" name="${name}" ${extra}>`}</label>`;
+  const main = `<section class="page-hero page-hero--slim">
+  <div class="wrap">
+    <div class="page-hero__copy">
+      <span class="crumbs"><a ${href(CONTACT_LINK.breadcrumbHome)}>${esc(CONTACT_LINK.breadcrumbHome.text)}</a> / ${esc(CP.title)}</span>
+      <h1>${esc(CP.title)}</h1>
+      <p>${esc(CP.intro)}</p>
+      <div class="btn-row"><a class="btn btn--book" ${href(CONTACT_LINK.book)}>${icon("calendar")}${esc(CONTACT_LINK.book.text)}</a></div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap contact-page">
+    <div class="contact-form-card">
+      <h2>${esc(CP.formTitle)}</h2>
+      <p class="contact-urgent">${icon("phone")}<span>${esc(CP.urgentNote)} <a href="${tel}">${esc(clinic.phone)}</a></span></p>
+      <form class="contact-form" name="contact" method="POST" action="/contact/thanks/" data-netlify="true" netlify-honeypot="company">
+        <p class="hp" aria-hidden="true"><label>Leave this empty <input name="company" tabindex="-1" autocomplete="off"></label></p>
+        ${field("name", F.name, "text", 'required autocomplete="name" maxlength="120"')}
+        ${field("email", F.email, "email", 'required autocomplete="email" maxlength="200"')}
+        <div class="field-row">${field("phone", F.phone, "tel", 'autocomplete="tel" maxlength="40"')}${field("pet", F.pet, "text", 'maxlength="120"')}</div>
+        ${field("message", F.message, "textarea", 'required maxlength="4000"')}
+        <button class="btn btn--book btn--lg" type="submit">${icon("mail")}${esc(CP.button)}</button>
+        <p class="contact-form__privacy">${esc(CP.privacyNote)} <a ${href(CONTACT_LINK.privacy)}>${esc(CONTACT_LINK.privacy.text)}</a>.</p>
+      </form>
+    </div>
+    <aside class="contact-details">
+      <h2>${esc(CP.detailsTitle)}</h2>
+      <a class="contact__phone" href="${tel}">${icon("phone")}${esc(clinic.phone)}</a>
+      <a class="contact-details__email" href="${mail}">${icon("mail")}${esc(clinic.email)}</a>
+      <p class="contact-details__address">${icon("pin")}<span>${esc(clinic.name)}<br>${esc(fullAddress)}</span></p>
+      <a class="btn btn--primary" ${href(CONTACT_LINK.map)}>${esc(CONTACT_LINK.map.text)}</a>
+      <h3 id="hours">${esc(CP.hoursTitle)}</h3>
+      <dl class="hours">${C.hours.map((h) => `<dt>${esc(h.days)}</dt><dd>${hoursText(h)}</dd>`).join("")}</dl>
+    </aside>
+  </div>
+</section>`;
+  return page({ title: `${CP.title} | ${clinic.name}`, description: `${CP.intro}`, pathName: "/contact/" }, main);
+}
+
+function contactThanksPage() {
+  return simplePage(CP.thanksTitle, `<h1>${esc(CP.thanksTitle)}</h1><p>${esc(CP.thanksText)} <a href="${tel}">${esc(clinic.phone)}</a></p><p style="margin-top: 16px"><a class="btn btn--primary" ${href(CONTACT_LINK.thanksHome)}>${esc(CONTACT_LINK.thanksHome.text)}</a></p>`, "/contact/thanks/");
 }
 
 function simplePage(title, body, pathName) {
@@ -792,12 +831,14 @@ write("app.js", js);
 write("index.html", homePage());
 write("acupuncture/index.html", acupuncturePage());
 write("privacy/index.html", privacyPage());
+write("contact/index.html", contactPage());
+write("contact/thanks/index.html", contactThanksPage());
 write("offline/index.html", simplePage("You're offline", `<h1>You're offline</h1><p>We can't load this page without an internet connection. You can still call us on <a href="${tel}">${esc(clinic.phone)}</a>.</p><p style="margin-top: 16px"><strong>Opening hours</strong><br>${C.hours.map((h) => `${esc(h.days)}: ${hoursText(h)}`).join("<br>")}</p>`, "/offline/"));
 write("404.html", simplePage("Page not found", `<h1>Page not found</h1><p>Sorry, that page doesn't exist. <a ${href(OTHER.notFoundHome)}>${esc(OTHER.notFoundHome.text)}</a> or <a ${href(OTHER.notFoundBook)}>${esc(OTHER.notFoundBook.text)}</a>.</p>`, "/404"));
 write("book/index.html", bookRedirect());
 write("manifest.webmanifest", manifest());
 write("robots.txt", `User-agent: *\nAllow: /\n\nSitemap: ${SITE}/sitemap.xml\n`);
-write("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${["/", "/acupuncture/", "/privacy/"].map((u) => `  <url><loc>${SITE}${u}</loc></url>`).join("\n")}\n</urlset>\n`);
+write("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${["/", "/acupuncture/", "/contact/", "/privacy/"].map((u) => `  <url><loc>${SITE}${u}</loc></url>`).join("\n")}\n</urlset>\n`);
 // Hosting rules (Netlify and Cloudflare Pages both read this file)
 write("_headers", `/sw.js
   Cache-Control: no-cache
@@ -811,7 +852,7 @@ write("_headers", `/sw.js
   Permissions-Policy: camera=(), microphone=(), geolocation=()
 `);
 
-const precache = ["/", "/acupuncture/", "/privacy/", "/offline/", `/styles.css?v=${ASSET_V}`, `/app.js?v=${ASSET_V}`, "/manifest.webmanifest",
+const precache = ["/", "/acupuncture/", "/contact/", "/privacy/", "/offline/", `/styles.css?v=${ASSET_V}`, `/app.js?v=${ASSET_V}`, "/manifest.webmanifest",
   ...walk(path.join(OUT, "assets")).filter((f) => !f.endsWith(".txt") && !f.endsWith(".jpg") && !f.startsWith("img/") && !f.endsWith(".gitkeep")).map((f) => "/assets/" + f)];
 // Photos are left out of the preload above to keep each new visitor's download small (Netlify bandwidth);
 // the service worker still saves each photo the first time it is shown, so viewed pages work offline.
