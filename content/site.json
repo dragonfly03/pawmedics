@@ -5,8 +5,9 @@
     "settings": "showInstallButton: false for now; true shows an \"Install the app\" button (app phase). themeColor = colour of the phone top bar in the app.",
     "logo": "The logo mark (cross and paw) is saved in the site at src/assets/icons/logo-mark.png and set in logo.url as \"/assets/icons/logo-mark.png\". The app icons and browser-tab icon are in src/assets/icons (made from the PawMedics square logo). To use a different logo instead, either put a file in src/assets/brand and give its path starting with /, or upload it to imgbb.com, open it, choose \"Direct links\" and paste the link that starts with https://i.ibb.co/ (ending .png or .jpg) into logo.url. The normal https://ibb.co/ page link will NOT work. For the phone app icon, upload a SQUARE 512 x 512 PNG and paste its direct link into logo.appIconUrl. Set showNameNextToLogo to false if the logo already contains the name. alt = description for screen readers. Leave fields empty (\"\") to keep the placeholder paw. The build saves a copy of the images inside the site; if it cannot download them (wrong link, or built somewhere without internet access, e.g. by Claude), it still finishes and links to ImgBB directly instead (works, but not offline).",
     "clinic": "address: line1 = number and street, then locality, postcode and country (postcode is shown in the full address and given to Google). phone = how the number is shown; phoneInternational = what phones dial (keep +356).",
-    "links": "EVERY link and button on the site, grouped by page (everyPage = top bar, menu, footer and the phone's bottom Call/Book bar). Each has its own text and url, so each booking button can go to a different place: change one and the others stay as they are. A url can be a full web address (https://...) or a page on this site (/acupuncture/, /#contact). Entries with text but no url are Call or Email buttons: they always use the phone number or email in clinic, and the number or email is shown with the text automatically (the narrow Call button in the phone's bottom bar shows the text only). topBarAddress is the address shown in the top bar (kept short so the bar fits on one line); the full address comes from clinic.address. Its url is also given to Google as the clinic's map. The other clinic is linked from three places, each set separately: topBarSisterClinic (top bar on every page; hidden on phones to save space), heroSisterClinic (the line under the main booking buttons on the home page) and homePage.sisterClinic (the Vetcare card in \"Two clinics, one team\"). footerFacebook's url is also given to Google as the clinic's Facebook page. The menu is a list: copy an item to add a menu link. app = the shortcuts shown when the installed app's icon is long-pressed on Android; the acupuncture shortcut must be a page on this site. Two links are fixed on purpose: the logo always goes to the home page, and the hidden \"Skip to content\" link for screen readers.",
+    "links": "EVERY link and button on the site, grouped by page (everyPage = top bar, menu, footer and the phone's bottom Call/Book bar). Each has its own text and url, so each booking button can go to a different place: change one and the others stay as they are. A url can be a full web address (https://...) or a page on this site (/acupuncture/, /contact/). Entries with text but no url are Call or Email buttons: they always use the phone number or email in clinic, and the number or email is shown with the text automatically (the narrow Call button in the phone's bottom bar shows the text only). topBarAddress is the address shown in the top bar (kept short so the bar fits on one line); the full address comes from clinic.address. Its url is also given to Google as the clinic's map. The other clinic is linked from three places, each set separately: topBarSisterClinic (top bar on every page; hidden on phones to save space), heroSisterClinic (the line under the main booking buttons on the home page) and homePage.sisterClinic (the Vetcare card in \"Two clinics, one team\"). footerFacebook's url is also given to Google as the clinic's Facebook page. The menu is a list: copy an item to add a menu link. app = the shortcuts shown when the installed app's icon is long-pressed on Android; the acupuncture shortcut must be a page on this site. Two links are fixed on purpose: the logo always goes to the home page, and the hidden \"Skip to content\" link for screen readers.",
     "hours": "24-hour times, e.g. \"19:00\" (shown as 7pm). For a closed day use \"closed\": true. schemaDays = English day names the row covers (used by Google). Hours appear in the top bar, contact section, footer and offline page.",
+    "contactPage": "The Contact page (/contact/): headings, the wording above and below the message form, each field's label (fields), the button text, and the thank-you page shown after a message is sent (thanksTitle, thanksText). privacyPageText is the paragraph about the form on the Privacy page. The phone number and email are added automatically from clinic. Messages arrive in Netlify (Forms) and by email. Its links (Home, Book online, Google Maps, Privacy page, Back to the home page) are under links.contactPage.",
     "notices": "Messages shown in a bar at the very top of every page, for example Christmas hours or a closure. Each notice appears by itself on its \"from\" date and disappears by itself after its \"until\" date (Malta time), so notices can be added weeks ahead and need no extra publish to switch on or off. Dates are written year-month-day, e.g. \"2026-12-24\". \"show\": false switches a notice off completely. linkText and linkUrl are optional (both or neither). Several notices can be listed; all that are in date show. Copy an existing { ... } item to add one.",
     "emergency": "The same message also appears in the first FAQ and in the \"Summer heat\" tip; update those too if it changes.",
     "vets": "Keep Dr. Andrew FIRST and Dr. Teresa SECOND: the home-page photo pair with the \"Vet / Not Vets\" arrows and the acupuncture page depend on this order. Further vets (e.g. Dr. Adam) go after them and appear in \"Meet our vets\". \"partner\": true marks the clinic partners (named in \"Two clinics, one team\"). Bios starting \"[Placeholder bio]\" are dummy text to replace; an empty bio is hidden. photo = image name in src/assets/img. If Dr. Andrew's or Dr. Teresa's photo is replaced, ask Claude to redraw the arrows.",
@@ -56,7 +57,7 @@
         { "text": "Acupuncture", "url": "/acupuncture/" },
         { "text": "Pet care", "url": "/#pet-care" },
         { "text": "Our vets", "url": "/#team" },
-        { "text": "Contact", "url": "/#contact" }
+        { "text": "Contact", "url": "/contact/" }
       ],
       "headerBook": { "text": "Book online", "url": "https://my.provet.com/pawmedics-limited/pawmedics-limited" },
       "phoneMenuCall": { "text": "Call" },
@@ -74,15 +75,20 @@
       "quickBook": { "text": "Book online", "smallText": "Pick a time that suits you", "url": "https://my.provet.com/pawmedics-limited/pawmedics-limited" },
       "quickCall": { "text": "Call", "smallText": "Speak to the clinic" },
       "quickDirections": { "text": "Get directions", "url": "https://maps.app.goo.gl/ACgmMMcnBZhCT744A" },
-      "quickEmail": { "text": "Email us" },
+      "quickMessage": { "text": "Send us a message", "smallText": "Use our contact form", "url": "/contact/" },
       "acupunctureBook": { "text": "Book an acupuncture session", "url": "https://my.provet.com/pawmedics-limited/pawmedics-limited" },
       "acupunctureMore": { "text": "How acupuncture works", "url": "/acupuncture/" },
       "reviewsAll": { "text": "Read all reviews on Google", "url": "https://maps.app.goo.gl/d6E86UsNSkKEongRA" },
       "servicesBook": { "text": "Book any service", "url": "https://my.provet.com/pawmedics-limited/pawmedics-limited" },
       "thisClinicBook": { "text": "Book at PawMedics", "url": "https://my.provet.com/pawmedics-limited/pawmedics-limited" },
-      "sisterClinic": { "text": "Visit Vetcare", "url": "https://www.vetcaremalta.com/en/home.htm" },
-      "contactBook": { "text": "Book online", "url": "https://my.provet.com/pawmedics-limited/pawmedics-limited" },
-      "contactMap": { "text": "Open in Google Maps", "url": "https://maps.app.goo.gl/ACgmMMcnBZhCT744A" }
+      "sisterClinic": { "text": "Visit Vetcare", "url": "https://www.vetcaremalta.com/en/home.htm" }
+    },
+    "contactPage": {
+      "breadcrumbHome": { "text": "Home", "url": "/" },
+      "book": { "text": "Book online", "url": "https://my.provet.com/pawmedics-limited/pawmedics-limited" },
+      "map": { "text": "Open in Google Maps", "url": "https://maps.app.goo.gl/ACgmMMcnBZhCT744A" },
+      "privacy": { "text": "Privacy page", "url": "/privacy/" },
+      "thanksHome": { "text": "Back to the home page", "url": "/" }
     },
     "acupuncturePage": {
       "breadcrumbHome": { "text": "Home", "url": "/" },
@@ -143,7 +149,7 @@
       "until": "2027-01-02",
       "text": "Christmas and New Year: our opening hours change over the holidays. Please call us before visiting.",
       "linkText": "See opening hours",
-      "linkUrl": "/#contact"
+      "linkUrl": "/contact/#hours"
     }
   ],
   "emergency": {
@@ -400,6 +406,26 @@
       "text": "Your first visit covers a health check, a vaccination plan, microchipping and worming, plus time for all your questions."
     }
   ],
+  "contactPage": {
+    "title": "Contact us",
+    "intro": "Send us a message and we'll get back to you as soon as we can. To book an appointment, it's quickest to use online booking.",
+    "urgentNote": "For anything urgent, please call us instead of sending a message:",
+    "formTitle": "Send us a message",
+    "fields": {
+      "name": "Your name",
+      "email": "Your email",
+      "phone": "Phone number (optional)",
+      "pet": "Your pet's name and type (optional)",
+      "message": "Your message"
+    },
+    "button": "Send message",
+    "privacyNote": "We use your details only to reply to your message. See our",
+    "detailsTitle": "Visit or call",
+    "hoursTitle": "Opening hours",
+    "thanksTitle": "Thank you, your message has been sent",
+    "thanksText": "We'll get back to you as soon as we can. If it's urgent, please call us:",
+    "privacyPageText": "If you send us a message through the contact form, we receive your name, email address, any phone number or pet details you add, and your message. It is delivered to us by our website host, Netlify, and we use it only to reply to you."
+  },
   "faq": [
     {
       "q": "What should I do in an emergency?",
