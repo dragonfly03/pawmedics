@@ -80,7 +80,10 @@ section, so it's safe to leave it there.
 | `sisterClinic` | The Vetcare card in "Two clinics, one team". | Vetcare is linked from three places, each set separately in `links`: `everyPage.topBarSisterClinic` (top bar, hidden on phones), `homePage.heroSisterClinic` (under the main booking buttons) and `homePage.sisterClinic` (the Vetcare card). |
 | `hero` | The big headline, small label and intro text at the top of the home page. | |
 | `vets` | Names, roles, bios and photos. | Keep **Dr. Andrew first and Dr. Teresa second**: the home-page photo pair and the acupuncture page rely on this order (section 6). An empty `bio` (`""`) is simply hidden. |
-| `reviews` | The Google rating (shown under the main booking buttons) and the "What pet owners say" review cards on the home page. | `rating` and `count` are typed in by hand: update them now and then from Google. Each item is one card: `name` (first name and initial), `stars` (1 to 5, no quotes) and `text`. Keep the reviewer's own words and mark any shortened part with `…`. Add, remove or reorder items freely; `"show": false` hides the section. The Google links are `links.homePage.heroReviews` and `links.homePage.reviewsAll`. |
+| `bookOnline` | The "What you can book online" cards (Consultation, Nurse clinic, Vaccination). | Each card has its own `linkText` and `linkUrl`, so a direct Provet link for a booking type can go on its card. `notSure` is the line under the cards; phone and email are added automatically. |
+| `about` | The "About PawMedics" section: `paragraphs` (one per item), `photo`, `photoAlt`, `caption`. | Text was drafted from the PawMedics Facebook page. |
+| `gallery` | The "Care in action" photo strip. | Each item: `photo` (name in `src/assets/img`), `alt`, `caption`. On phones it swipes sideways. |
+| `reviews` | `"show": false` on one review hides just that card. The Google rating (shown under the main booking buttons) and the "What pet owners say" review cards on the home page. | `rating` and `count` are typed in by hand: update them now and then from Google. Each item is one card: `name` (first name and initial), `stars` (1 to 5, no quotes) and `text`. Keep the reviewer's own words and mark any shortened part with `…`. Add, remove or reorder items freely; `"show": false` hides the section. The Google links are `links.homePage.heroReviews` and `links.homePage.reviewsAll`. |
 | `services` | The service cards. | `"show": false` hides a service without deleting it. `"featured": true` gives a card the purple outline. `"link"` adds a link at the bottom of the card; `"linkText"` is its wording ("Learn more" if left out). |
 | `maltaTips` | The four "Pet care in Malta" cards. | `icon` can be `bug`, `sun`, `plane` or `paw`. |
 | `faq` | Home-page questions. | The first one is shown open. |
@@ -88,15 +91,24 @@ section, so it's safe to leave it there.
 
 ---
 
-## 5. Logo and app icon (via ImgBB)
+## 5. Logo and app icon
+
+The real PawMedics logo is now built into the site (22 Nov 2026):
+- **Header:** the logo mark (cross and paw), `src/assets/icons/logo-mark.png`, set in `logo.url` as
+  `"/assets/icons/logo-mark.png"`, with the name "PawMedics" next to it.
+- **App icon, home-screen icon and browser-tab icon:** `src/assets/icons/` (`icon-192.png`, `icon-512.png`,
+  `maskable-512.png`, `apple-touch-icon.png`, `favicon-32.png`, `favicon.svg`), made from the square
+  PawMedics logo. `logo.appIconUrl` stays empty so these files are used.
+
+To use a different logo later, either put the file in `src/assets/icons/` and give its path (starting
+with `/`) in `logo.url`, or use ImgBB:
 
 1. Go to **imgbb.com** and upload the logo.
 2. Open the uploaded image, choose **"Direct links"** from the embed-codes menu, and copy the link
    that starts with `https://i.ibb.co/…` and ends in `.png` or `.jpg`.
    The ordinary page link (`https://ibb.co/…`) **won't work**, because it points at a web page, not the image.
 3. Paste it into `logo.url` in `content/site.json`.
-4. For the **app icon** (shown on the phone's home screen and as the browser-tab icon), upload a
-   **square** version, ideally **512 × 512 pixels, PNG**, and paste its direct link into `logo.appIconUrl`.
+4. For the **app icon**, upload a **square** 512 × 512 PNG and paste its direct link into `logo.appIconUrl`.
 5. If the logo already contains the word "PawMedics", set `"showNameNextToLogo": false` so the name
    isn't shown twice. `logo.alt` is the description read out by screen readers.
 
@@ -122,7 +134,17 @@ The photos live in `src/assets/img/`. Each comes in two sizes (`-480.webp` for p
 |---|---|
 | `dr-andrew` | Home-page photo pair (left) and Dr. Andrew's "Meet our vets" card |
 | `dr-teresa` | Home-page photo pair (right), Dr. Teresa's card, and "Your acupuncturist" on the acupuncture page |
-| `acupuncture` | Home-page acupuncture block, acupuncture-page header, and the preview image when the site is shared on social media |
+| `acupuncture` | The first placeholder acupuncture photo (no longer used) |
+| `dr-adam` | Dr. Adam's "Meet our vets" card |
+| `dr-teresa-acupuncture-1`, `-2` | Acupuncture-page header and home-page acupuncture block (also the social-media preview image) |
+| `dog-acupuncture`, `cat-acupuncture`, `rabbit-acupuncture` | "For dogs, cats and rabbits" on the acupuncture page |
+| `dr-teresa-community` | "About PawMedics" (Careers Day at St. Dorothy's) |
+| `dr-adam-at-work`, `dr-andrew-at-work`, `dr-teresa-at-work-1`, `dr-teresa-at-work-2`, `dr-andrew-community` | "Care in action" gallery |
+
+The clinic photos came from `C:\Projects\PawMedics\Assets`. Where a photo had a PawMedics frame
+(a purple border with the logo, or a purple fade with the logo along the bottom), the frame was cut
+off and only the photo itself is used. Photos are **not** preloaded for offline use (to keep each new
+visitor's download, and Netlify credits, small); each is saved the first time it's viewed.
 
 They were cropped and lightly brightened for the web, and are kept small so pages load quickly.
 

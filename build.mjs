@@ -117,6 +117,7 @@ if (!String(REVIEWS.rating || "").trim()) stop('reviews needs a "rating", e.g. "
 if (!Number.isInteger(REVIEWS.count) || REVIEWS.count < 1) stop('reviews "count" must be a whole number without quotes, e.g. 24.');
 if (!Array.isArray(REVIEWS.items)) stop("reviews.items must be a list [ ... ].");
 REVIEWS.items.forEach((r, i) => {
+  if (r && r.show === false) return;
   if (!r || !String(r.name || "").trim() || !String(r.text || "").trim()) stop(`review ${i + 1} in reviews.items needs a "name" and a "text".`);
   if (!Number.isInteger(r.stars) || r.stars < 1 || r.stars > 5) stop(`review ${i + 1} in reviews.items needs "stars" from 1 to 5 (no quotes).`);
 });
@@ -142,6 +143,24 @@ const noticesHtml = () => {
 ${live.map((n) => `  <div class="notice" data-from="${esc(n.from)}" data-until="${esc(n.until)}" role="status" hidden><div class="wrap"><span>${esc(n.text)}</span>${n.linkUrl && String(n.linkUrl).trim() ? ` <a href="${esc(String(n.linkUrl).trim())}">${esc(n.linkText)} →</a>` : ""}</div></div>`).join("\n")}
 </div>`;
 };
+// Photos named in the content file must exist (as name-480.webp and name-900.webp in src/assets/img).
+const photoExists = (name) => ["480", "900"].every((w) => fs.existsSync(path.join(SRC, "assets", "img", `${name}-${w}.webp`)));
+const needPhoto = (name, where) => { if (!String(name || "").trim()) stop(`${where} needs a "photo".`); if (!photoExists(name)) stop(`${where}: no photo called "${name}" in src/assets/img.`); };
+C.vets.forEach((v, i) => needPhoto(v.photo, `vet ${i + 1} (${v.name})`));
+needPhoto(C.acupuncture.photo, "acupuncture photo");
+if (C.acupuncture.pagePhoto) needPhoto(C.acupuncture.pagePhoto, "acupuncture pagePhoto");
+const ACU_GALLERY = (C.acupuncture.gallery && Array.isArray(C.acupuncture.gallery.items)) ? C.acupuncture.gallery : null;
+if (ACU_GALLERY) ACU_GALLERY.items.forEach((g, i) => needPhoto(g.photo, `acupuncture gallery photo ${i + 1}`));
+const ABOUT = C.about || { show: false };
+if (ABOUT.show !== false) { if (!Array.isArray(ABOUT.paragraphs)) stop("about.paragraphs must be a list [ ... ]."); if (ABOUT.photo) needPhoto(ABOUT.photo, "about photo"); }
+const GALLERY = C.gallery || { show: false };
+if (GALLERY.show !== false) { if (!Array.isArray(GALLERY.items)) stop("gallery.items must be a list [ ... ]."); GALLERY.items.forEach((g, i) => needPhoto(g.photo, `gallery photo ${i + 1}`)); }
+const BOOK = C.bookOnline || { show: false };
+if (BOOK.show !== false) {
+  if (!Array.isArray(BOOK.items)) stop("bookOnline.items must be a list [ ... ].");
+  BOOK.items.forEach((b, i) => { if (!b.title || !b.linkText || !String(b.linkUrl || "").trim()) stop(`bookOnline item ${i + 1} needs a "title", "linkText" and "linkUrl".`); });
+}
+const PARTNERS = C.vets.filter((v) => v.partner !== false).slice(0, 2);
 const ratingLine = `${REVIEWS.rating} on ${REVIEWS.source || "Google"} · ${REVIEWS.count} reviews`;
 const href = (entry) => `href="${esc(entry.url.trim())}"`;
 
@@ -165,7 +184,7 @@ function head({ title, description, pathName }) {
     url: SITE + "/",
     telephone: clinic.phoneInternational,
     email: clinic.email,
-    image: SITE + "/assets/img/acupuncture.jpg",
+    image: SITE + `/assets/img/${C.acupuncture.photo}.jpg`,
     address: { "@type": "PostalAddress", streetAddress: clinic.address.line1, addressLocality: clinic.address.locality, ...(clinic.address.postcode ? { postalCode: clinic.address.postcode } : {}), addressCountry: clinic.address.countryCode },
     hasMap: LINK.topBarAddress.url.trim(),
     openingHoursSpecification: C.hours.filter((h) => !h.closed && h.schemaDays).map((h) => ({ "@type": "OpeningHoursSpecification", dayOfWeek: h.schemaDays, opens: h.open, closes: h.close })),
@@ -193,7 +212,7 @@ ${BRAND.appIcon ? `<link rel="icon" href="${esc(BRAND.appIcon)}">
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(description)}">
 <meta property="og:url" content="${url}">
-<meta property="og:image" content="${SITE}/assets/img/acupuncture.jpg">
+<meta property="og:image" content="${SITE}/assets/img/${C.acupuncture.photo}.jpg">
 <link rel="preload" href="/assets/fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/montserrat-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/styles.css?v=${ASSET_V}">
@@ -361,7 +380,17 @@ function homePage() {
   </div>
 </section>
 
-<section class="section" id="services" style="padding-top: 24px">
+${BOOK.show !== false && BOOK.items.length ? `<section class="section" id="book-online" style="padding-top: 24px; padding-bottom: 24px">
+  <div class="wrap">
+    <div class="section-head"><div><h2>${esc(BOOK.title || "What you can book online")}</h2>${BOOK.text ? `<p>${esc(BOOK.text)}</p>` : ""}</div></div>
+    <div class="grid book-types">
+${BOOK.items.map((b) => `      <div class="book-type">${icon("calendar", "card__icon")}<h3>${esc(b.title)}</h3><p>${esc(b.text || "")}</p><a class="btn btn--book" href="${esc(String(b.linkUrl).trim())}">${esc(b.linkText)}</a></div>`).join("\n")}
+    </div>
+    ${BOOK.notSure ? `<p class="book-types__note">${esc(BOOK.notSure)} <a href="${tel}">${esc(clinic.phone)}</a> · <a href="${mail}">${esc(clinic.email)}</a></p>` : ""}
+  </div>
+</section>
+
+` : ""}<section class="section" id="services" style="padding-top: 24px">
   <div class="wrap">
     <div class="section-head">
       <div><h2>Our services</h2><p>Everything your dog, cat or small pet needs, from the first puppy jab to care in later life.</p></div>
@@ -385,13 +414,13 @@ ${C.maltaTips.map((t) => `      <div class="card card--plain">${icon(t.icon, "ca
 <section class="section" id="team">
   <div class="wrap">
     <div class="section-head"><div><h2>Meet our vets</h2></div></div>
-    <div class="grid grid--two">
-${C.vets.map((v) => `      <div class="vet">${photo(v.photo, v.name, "112px", 'loading="lazy"')}<div><h3>${esc(v.name)}</h3><span class="vet__role">${esc(v.role)}</span>${v.bio ? `<p>${esc(v.bio)}</p>` : ""}</div></div>`).join("\n")}
+    <div class="grid team">
+${C.vets.map((v) => `      <article class="vet">${photo(v.photo, v.photoAlt || v.name, "(max-width: 760px) 92vw, 360px", 'loading="lazy"')}<div class="vet__body"><h3>${esc(v.name)}</h3><span class="vet__role">${esc(v.role)}</span>${v.bio ? `<p>${esc(v.bio)}</p>` : ""}</div></article>`).join("\n")}
     </div>
   </div>
 </section>
 
-${REVIEWS.show !== false && REVIEWS.items.length ? `<section class="section section--cream" id="reviews">
+${REVIEWS.show !== false && REVIEWS.items.some((r) => r.show !== false) ? `<section class="section section--cream" id="reviews">
   <div class="wrap">
     <div class="section-head">
       <div><h2>${esc(REVIEWS.title || "What pet owners say")}</h2>
@@ -400,14 +429,33 @@ ${REVIEWS.show !== false && REVIEWS.items.length ? `<section class="section sect
       <a ${href(HOME.reviewsAll)} style="font-weight: 600">${esc(HOME.reviewsAll.text)} →</a>
     </div>
     <div class="reviews" role="list">
-${REVIEWS.items.map((r) => `      <figure class="review" role="listitem"><div class="review__stars" aria-label="${r.stars} out of 5 stars" role="img">${stars(r.stars, "star")}</div><blockquote>${esc(r.text)}</blockquote><figcaption>${esc(r.name)}<span>${esc(REVIEWS.source || "Google")} review</span></figcaption></figure>`).join("\n")}
+${REVIEWS.items.filter((r) => r.show !== false).map((r) => `      <figure class="review" role="listitem"><div class="review__stars" aria-label="${r.stars} out of 5 stars" role="img">${stars(r.stars, "star")}</div><blockquote>${esc(r.text)}</blockquote><figcaption>${esc(r.name)}<span>${esc(REVIEWS.source || "Google")} review</span></figcaption></figure>`).join("\n")}
+    </div>
+  </div>
+</section>
+
+` : ""}${ABOUT.show !== false ? `<section class="section" id="about">
+  <div class="wrap about">
+    <div class="prose">
+      <h2>${esc(ABOUT.title || "About us")}</h2>
+${ABOUT.paragraphs.map((t) => `      <p>${esc(t)}</p>`).join("\n")}
+    </div>
+    ${ABOUT.photo ? `<figure class="about__photo">${photo(ABOUT.photo, ABOUT.photoAlt || "", "(max-width: 760px) 92vw, 520px", 'loading="lazy"')}${ABOUT.caption ? `<figcaption>${esc(ABOUT.caption)}</figcaption>` : ""}</figure>` : ""}
+  </div>
+</section>
+
+` : ""}${GALLERY.show !== false && GALLERY.items.length ? `<section class="section section--cream" id="care-in-action">
+  <div class="wrap">
+    <div class="section-head"><div><h2>${esc(GALLERY.title || "Care in action")}</h2>${GALLERY.text ? `<p>${esc(GALLERY.text)}</p>` : ""}</div></div>
+    <div class="gallery">
+${GALLERY.items.map((g) => `      <figure>${photo(g.photo, g.alt || "", "(max-width: 760px) 84vw, 380px", 'loading="lazy"')}${g.caption ? `<figcaption>${esc(g.caption)}</figcaption>` : ""}</figure>`).join("\n")}
     </div>
   </div>
 </section>
 
 ` : ""}<section class="section section--tint">
   <div class="wrap">
-    <div class="section-head"><div><h2>Two clinics, one team</h2><p>${esc(clinic.name)} and ${esc(C.sisterClinic.name)} are both run by ${C.vets.map((v) => esc(v.name)).join(" and ")}, so you can visit whichever is nearer.</p></div></div>
+    <div class="section-head"><div><h2>Two clinics, one team</h2><p>${esc(clinic.name)} and ${esc(C.sisterClinic.name)} are both run by ${PARTNERS.map((v) => esc(v.name)).join(" and ")}, so you can visit whichever is nearer.</p></div></div>
     <div class="grid grid--two">
       <div class="clinic clinic--here"><span class="eyebrow">You are here</span><h3>${esc(clinic.name)}, ${esc(clinic.address.locality)}</h3><p>${esc(clinic.address.line1)}, ${esc(localityLine)}<br>${esc(clinic.phone)} · ${esc(clinic.email)}</p><a ${href(HOME.thisClinicBook)}>${esc(HOME.thisClinicBook.text)} →</a></div>
       <div class="clinic"><span class="eyebrow">${esc(C.sisterClinic.badge)}</span><h3>${esc(C.sisterClinic.name)}, ${esc(C.sisterClinic.place)}</h3><p>${esc(C.sisterClinic.address)}<br>${esc(C.sisterClinic.phone)} · ${esc(C.sisterClinic.email)}</p><a ${href(HOME.sisterClinic)}>${esc(HOME.sisterClinic.text)} →</a></div>
@@ -460,7 +508,7 @@ function acupuncturePage() {
         <a class="btn btn--ghost btn--lg" href="${tel}">${esc(ACU.heroCall.text)} ${esc(clinic.phone)}</a>
       </div>
     </div>
-    ${photo(ac.photo, ac.photoAlt, "(max-width: 760px) 92vw, 520px", 'fetchpriority="high"')}
+    ${photo(ac.pagePhoto || ac.photo, ac.pagePhotoAlt || ac.photoAlt, "(max-width: 760px) 92vw, 520px", 'fetchpriority="high"')}
   </div>
 </section>
 
@@ -471,7 +519,16 @@ function acupuncturePage() {
   </div>
 </section>
 
-<section class="section" style="padding-top: 0">
+${ACU_GALLERY && ACU_GALLERY.items.length ? `<section class="section" style="padding-top: 0">
+  <div class="wrap">
+    <div class="section-head"><div><h2>${esc(ACU_GALLERY.title || "")}</h2>${ACU_GALLERY.text ? `<p>${esc(ACU_GALLERY.text)}</p>` : ""}</div></div>
+    <div class="gallery gallery--acu">
+${ACU_GALLERY.items.map((g) => `      <figure>${photo(g.photo, g.alt || "", "(max-width: 760px) 84vw, 380px", 'loading="lazy"')}${g.caption ? `<figcaption>${esc(g.caption)}</figcaption>` : ""}</figure>`).join("\n")}
+    </div>
+  </div>
+</section>
+
+` : ""}<section class="section" style="padding-top: 0">
   <div class="wrap">
     <h2 style="margin-bottom: 28px">How it works</h2>
     <ol class="steps">${ac.steps.map((s) => `<li><h3>${esc(s.title)}</h3><p>${esc(s.text)}</p></li>`).join("")}</ol>
@@ -688,6 +745,11 @@ copyDir(path.join(SRC, "assets"), path.join(OUT, "assets"));
 // so visitors never load anything from ImgBB and the app still shows the logo offline.
 async function saveRemoteImage(url, baseName) {
   if (!url) return null;
+  // A path starting with "/" is a file already inside the site (src/assets/...), e.g. "/assets/brand/logo-mark.png".
+  if (url.startsWith("/")) {
+    if (!fs.existsSync(path.join(SRC, url.replace(/^\//, "")))) stop(`logo: the file ${url} doesn't exist in src${url}.`);
+    return url;
+  }
   try {
     const res = await fetch(url);
     if (!res.ok) throw new Error("HTTP " + res.status);
@@ -740,7 +802,9 @@ write("_headers", `/sw.js
 `);
 
 const precache = ["/", "/acupuncture/", "/privacy/", "/offline/", `/styles.css?v=${ASSET_V}`, `/app.js?v=${ASSET_V}`, "/manifest.webmanifest",
-  ...walk(path.join(OUT, "assets")).filter((f) => !f.endsWith(".txt") && !f.endsWith(".jpg")).map((f) => "/assets/" + f)];
+  ...walk(path.join(OUT, "assets")).filter((f) => !f.endsWith(".txt") && !f.endsWith(".jpg") && !f.startsWith("img/") && !f.endsWith(".gitkeep")).map((f) => "/assets/" + f)];
+// Photos are left out of the preload above to keep each new visitor's download small (Netlify bandwidth);
+// the service worker still saves each photo the first time it is shown, so viewed pages work offline.
 write("sw.js", serviceWorker(ASSET_V, precache));
 
 console.log(`Built ${clinic.name} site → dist/  (version ${ASSET_V}, ${walk(OUT).length} files)`);
