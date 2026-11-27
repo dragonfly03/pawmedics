@@ -215,7 +215,7 @@ const photo = (name, alt, sizes, attrs = "") =>
 const BRAND = { logo: null, appIcon: null };
 let ASSET_V = "dev"; // replaced with a content hash so browsers and the app pick up changes
 
-function head({ title, description, pathName }) {
+function head({ title, description, pathName, noindex, ogType, image, imageAlt, extraLd, article }) {
   const url = SITE + pathName;
   const jsonld = {
     "@context": "https://schema.org",
@@ -236,7 +236,7 @@ function head({ title, description, pathName }) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>${esc(title)}</title>
-<meta name="description" content="${esc(description)}">${/\/(thanks|offline)\/$|^\/404$/.test(pathName) ? '\n<meta name="robots" content="noindex">' : ""}
+<meta name="description" content="${esc(description)}">${noindex || /\/(thanks|offline)\/$|^\/404$/.test(pathName) ? '\n<meta name="robots" content="noindex">' : ""}
 <link rel="canonical" href="${url}">
 <meta name="theme-color" content="${C.settings.themeColor}">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -248,21 +248,29 @@ ${BRAND.appIcon ? `<link rel="icon" href="${esc(BRAND.appIcon)}">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="${esc(clinic.name)}">
-<meta property="og:type" content="website">
+<meta property="og:type" content="${ogType || "website"}">
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(description)}">
 <meta property="og:url" content="${url}">
-<meta property="og:image" content="${SITE}/assets/img/${C.acupuncture.photo}.jpg">
+<meta property="og:image" content="${SITE}/assets/img/${image || C.acupuncture.photo}.jpg">${image ? `
+<meta property="og:image:alt" content="${esc(imageAlt || "")}">
+<meta property="og:site_name" content="${esc(clinic.name)}">
+<meta name="twitter:card" content="summary_large_image">` : ""}${article ? `
+<meta property="article:published_time" content="${article.published}">
+<meta property="article:modified_time" content="${article.modified}">
+<meta property="article:section" content="${esc(article.section)}">` : ""}
 <link rel="preload" href="/assets/fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/montserrat-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/styles.css?v=${ASSET_V}">
-<script type="application/ld+json">${JSON.stringify(jsonld)}</script>
+<script type="application/ld+json">${JSON.stringify(jsonld)}</script>${(extraLd || []).map((ld) => `
+<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, "\\u003c")}</script>`).join("")}
 </head>`;
 }
 
 function header(pathName) {
   // Menu items come from links.everyPage.menu; the one for the current page is marked.
-  const links = MENU.map((m) => `<a ${href(m)}${m.url.trim() === pathName ? ' aria-current="page"' : ""}>${esc(m.text)}</a>`).join("\n");
+  const isCurrent = (u) => u === pathName || (u === "/advice/" && pathName.startsWith("/advice/"));
+  const links = MENU.map((m) => `<a ${href(m)}${isCurrent(m.url.trim()) ? ' aria-current="page"' : ""}>${esc(m.text)}</a>`).join("\n");
   return `<a class="skip" href="#main">Skip to content</a>
 ${noticesHtml()}
 <div class="topbar">
@@ -323,7 +331,8 @@ function footer() {
       <span class="footer__title">More</span>
       <a ${href(LINK.footerBook)}>${esc(LINK.footerBook.text)}</a>
       <a ${href(LINK.footerFacebook)}>${esc(LINK.footerFacebook.text)}</a>
-      ${MESSENGER ? `<a ${msgr}>${esc(LINK.footerMessenger.text)}</a>` : ""}
+      ${MESSENGER ? `<a ${msgr}>${esc(LINK.footerMessenger.text)}</a>` : ""}${ADV.list.length ? `
+      <a href="/advice/">${esc(ADV.settings.title)}</a>` : ""}
       <a ${href(LINK.footerPrivacy)}>${esc(LINK.footerPrivacy.text)}</a>
       <button class="btn btn--ghost install-btn" type="button" hidden>${icon("download")}Install the app</button>
     </div>
@@ -371,6 +380,244 @@ function vetsPair() {
   </div>
   <div class="vets-pair__names"><span>${esc(a.name)}</span><span>${esc(t.name)}</span></div>
 </div>`;
+}
+
+// ---------- pet care advice (content/advice) ----------
+// Each article is a .md file in content/advice, with its details between the two --- lines at the top.
+// "status: draft" articles appear only on the preview site (Netlify branch deploys) and on local
+// builds, with a Draft banner and "noindex". The live site (Netlify production) shows only articles
+// with "status: published", and those must name the vet who checked them in "reviewedBy".
+// If the folder is missing (for example in the PawMedics CMS's own preview), the site builds without it.
+// Same as stop(), but points at the article files rather than content/site.json.
+function advStop(msg) {
+  console.error(`\nBuild stopped: ${msg}\nFix the file in content/advice and try again. The live site has not changed.\n`);
+  process.exit(1);
+}
+const ADV = (() => {
+  const dir = path.join(ROOT, "content", "advice");
+  const empty = { settings: {}, list: [], all: [], tipLink: () => null, files: "", isLive: false };
+  if (!fs.existsSync(dir)) return empty;
+  const ctx = process.env.CONTEXT || (process.env.CF_PAGES_BRANCH ? (process.env.CF_PAGES_BRANCH === "main" ? "production" : "branch-deploy") : "local");
+  const isLive = ctx === "production";
+  const setFile = path.join(dir, "_settings.json");
+  if (!fs.existsSync(setFile)) advStop("content/advice/_settings.json is missing.");
+  let S;
+  try { S = JSON.parse(fs.readFileSync(setFile, "utf8")); } catch (e) { advStop(`content/advice/_settings.json is not written correctly (${e.message}).`); }
+  ["title", "heading", "intro", "seoTitle", "description", "author", "outOfHours", "draftBanner"].forEach((k) => { if (!String(S[k] || "").trim()) advStop(`content/advice/_settings.json needs a "${k}".`); });
+  const unq = (s) => { s = s.trim(); return s.length > 1 && s.startsWith('"') && s.endsWith('"') ? s.slice(1, -1).replace(/\\"/g, '"') : s; };
+  const LISTS = ["keyPoints"];
+  let filesText = fs.readFileSync(setFile, "utf8");
+  const all = fs.readdirSync(dir).filter((f) => f.endsWith(".md")).sort().map((f) => {
+    const raw = fs.readFileSync(path.join(dir, f), "utf8").replace(/\r\n?/g, "\n");
+    filesText += raw;
+    const where = `content/advice/${f}`;
+    const m = raw.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+    if (!m) advStop(`${where} must start with its details between two lines of three dashes (---).`);
+    const a = { slug: f.replace(/\.md$/, ""), body: m[2], file: where };
+    let listKey = null;
+    m[1].split("\n").forEach((line) => {
+      if (!line.trim()) return;
+      const item = line.match(/^\s*-\s+(.*)$/);
+      if (item && listKey) { a[listKey].push(unq(item[1])); return; }
+      const kv = line.match(/^([A-Za-z]+):\s*(.*)$/);
+      if (!kv) advStop(`${where}: can't read the line "${line.trim()}" at the top of the file.`);
+      if (LISTS.includes(kv[1])) { a[kv[1]] = []; listKey = kv[1]; } else { a[kv[1]] = unq(kv[2]); listKey = null; }
+    });
+    if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(a.slug)) advStop(`${where}: file names must be lower-case words joined by dashes, e.g. "summer-heat.md".`);
+    ["title", "seoTitle", "description", "summary", "category", "photo", "photoAlt", "date", "status"].forEach((k) => { if (!String(a[k] || "").trim()) advStop(`${where} needs a "${k}".`); });
+    if (!["draft", "published"].includes(a.status)) advStop(`${where}: "status" must be draft or published.`);
+    if (!isDate(a.date)) advStop(`${where}: "date" must be written like 2026-11-27.`);
+    a.updated = String(a.updated || "").trim() || a.date;
+    if (!isDate(a.updated)) advStop(`${where}: "updated" must be written like 2026-11-27.`);
+    needPhoto(a.photo, where);
+    if (!fs.existsSync(path.join(SRC, "assets", "img", `${a.photo}.jpg`))) advStop(`${where}: the photo "${a.photo}" also needs a ${a.photo}.jpg in src/assets/img (used when the article is shared).`);
+    a.keyPoints = a.keyPoints || [];
+    a.reviewedBy = String(a.reviewedBy || "").trim();
+    a.related = String(a.related || "").split(",").map((s) => s.trim()).filter(Boolean);
+    a.order = Number(a.order) || 999;
+    a.draft = a.status === "draft";
+    a.url = `/advice/${a.slug}/`;
+    if (!a.draft) {
+      if (!a.reviewedBy) advStop(`${where} is marked "published" but "reviewedBy" is empty. Add the name of the vet who checked it.`);
+      if (/\[\[TO CONFIRM/.test(a.body)) advStop(`${where} is marked "published" but still has a [[TO CONFIRM ...]] note. Remove it once the detail is checked.`);
+    }
+    if (a.seoTitle.length > 65) console.warn(`Note: ${where} seoTitle is ${a.seoTitle.length} characters; Google shows about 60.`);
+    if (a.description.length > 165) console.warn(`Note: ${where} description is ${a.description.length} characters; Google shows about 155.`);
+    return a;
+  });
+  const bySlug = Object.fromEntries(all.map((a) => [a.slug, a]));
+  all.forEach((a) => a.related.forEach((r) => { if (!bySlug[r]) advStop(`${a.file}: "related" names "${r}", but there's no content/advice/${r}.md.`); }));
+  const list = all.filter((a) => !isLive || !a.draft).sort((x, y) => x.order - y.order || x.title.localeCompare(y.title));
+  const shown = new Set(list.map((a) => a.slug));
+  // The "Pet care" menu item goes to the advice section once there is something to show.
+  if (list.length && S.menu && S.menu.replacesUrl) MENU.forEach((m) => { if (m.url.trim() === S.menu.replacesUrl) { m.url = "/advice/"; if (S.menu.text) m.text = S.menu.text; } });
+  const tips = S.homeTipLinks || {};
+  Object.entries(tips).forEach(([k, slug]) => { if (!bySlug[slug]) advStop(`content/advice/_settings.json: homeTipLinks "${k}" names "${slug}", but there's no content/advice/${slug}.md.`); });
+  const tipLink = (title) => (tips[title] && shown.has(tips[title]) ? bySlug[tips[title]] : null);
+  return { settings: S, list, all, bySlug, shown, tipLink, files: filesText, isLive, ctx };
+})();
+
+const fmtDate = (d) => new Date(d + "T12:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+const slugify = (s) => s.toLowerCase().replace(/<[^>]+>/g, "").replace(/&[a-z]+;/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+// Turns the article's Markdown into HTML. Supports ## and ### headings, paragraphs, - and 1. lists,
+// | tables |, **bold**, *italic*, [links](url), {{phone}} {{tel}} {{book}} {{email}} {{messenger}},
+// {{outOfHours}} on its own line, and [[TO CONFIRM: ...]] notes (shown on drafts only).
+function renderArticle(a) {
+  const fill = (s) => s
+    .replace(/\{\{phone\}\}/g, clinic.phone).replace(/\{\{tel\}\}/g, tel).replace(/\{\{email\}\}/g, clinic.email)
+    .replace(/\{\{book\}\}/g, LINK.headerBook.url.trim()).replace(/\{\{messenger\}\}/g, MESSENGER || "/contact/");
+  const inline = (s) => esc(fill(s))
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*([^*]+)\*/g, "<em>$1</em>")
+    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (all, text, url) => {
+      const u = url.replace(/&amp;/g, "&");
+      const adv = u.match(/^\/advice\/([a-z0-9-]+)\/?(#.*)?$/);
+      if (adv) {
+        if (!ADV.bySlug[adv[1]]) advStop(`${a.file}: the link to /advice/${adv[1]}/ points to an article that doesn't exist.`);
+        if (!ADV.shown.has(adv[1])) return text; // that article isn't on this version of the site yet
+      }
+      const ext = /^https?:\/\//.test(u) && !u.startsWith(SITE);
+      return `<a href="${esc(u)}"${ext ? ' target="_blank" rel="noopener"' : ""}>${text}</a>`;
+    });
+  const out = [], toc = [], faq = [];
+  let section = "", q = null;
+  const blocks = a.body.trim().split(/\n\s*\n/);
+  for (const b of blocks) {
+    const lines = b.split("\n").map((l) => l.trimEnd());
+    const first = lines[0].trim();
+    if (first === "{{outOfHours}}") { out.push(`<p class="advice-note">${icon("clock")}<span>${esc(ADV.settings.outOfHours)}</span></p>`); continue; }
+    const todo = first.match(/^\[\[TO CONFIRM:?\s*(.*)\]\]$/);
+    if (todo) { if (a.draft) out.push(`<p class="advice-todo"><strong>To confirm before publishing:</strong> ${esc(todo[1])}</p>`); continue; }
+    let h;
+    if ((h = first.match(/^(##|###)\s+(.*)$/)) && lines.length === 1) {
+      const level = h[1].length, text = h[2].trim(), id = slugify(text);
+      if (level === 2) { section = text; q = null; if (!/^sources$/i.test(text)) toc.push({ id, text }); }
+      if (level === 3 && /^common questions$/i.test(section)) { q = { q: text, a: [] }; faq.push(q); }
+      out.push(`<h${level} id="${id}">${inline(text)}</h${level}>`);
+      continue;
+    }
+    if (lines.every((l) => /^\s*-\s+/.test(l))) { out.push(`<ul>${lines.map((l) => `<li>${inline(l.replace(/^\s*-\s+/, ""))}</li>`).join("")}</ul>`); continue; }
+    if (lines.every((l) => /^\s*\d+\.\s+/.test(l))) { out.push(`<ol>${lines.map((l) => `<li>${inline(l.replace(/^\s*\d+\.\s+/, ""))}</li>`).join("")}</ol>`); continue; }
+    if (lines.every((l) => /^\s*\|/.test(l)) && lines.length >= 2) {
+      const cells = (l) => l.trim().replace(/^\||\|$/g, "").split("|").map((c) => c.trim());
+      const [head, , ...rows] = lines;
+      out.push(`<div class="table-wrap"><table><thead><tr>${cells(head).map((c) => `<th scope="col">${inline(c)}</th>`).join("")}</tr></thead><tbody>${rows.map((r) => `<tr>${cells(r).map((c, i) => (i === 0 ? `<th scope="row">${inline(c)}</th>` : `<td>${inline(c)}</td>`)).join("")}</tr>`).join("")}</tbody></table></div>`);
+      continue;
+    }
+    const para = lines.map((l) => l.trim()).join(" ");
+    if (q) q.a.push(fill(para).replace(/\*\*|\*/g, "").replace(/\[([^\]]+)\]\([^)]+\)/g, "$1"));
+    out.push(`<p>${inline(para)}</p>`);
+  }
+  const words = a.body.replace(/[#*|\[\]()_-]/g, " ").split(/\s+/).filter(Boolean).length;
+  return { html: out.join("\n"), toc, faq, minutes: Math.max(1, Math.round(words / 200)), words };
+}
+
+const advCard = (a) => `<a class="advice-card" href="${a.url}">
+        ${photo(a.photo, "", "(max-width: 760px) 92vw, 380px", 'loading="lazy"')}
+        <span class="advice-card__body"><span class="eyebrow">${esc(a.category)}${a.draft ? ' · <span class="advice-card__draft">Draft</span>' : ""}</span><strong>${esc(a.title)}</strong><span>${esc(a.summary)}</span><span class="advice-card__more">Read more →</span></span>
+      </a>`;
+
+const helpBox = () => `<aside class="advice-help" aria-label="Contact ${esc(clinic.name)}">
+    <h2>Worried about your pet?</h2>
+    <p>Every pet is different, and this article can't replace an examination. Call us and we'll tell you whether your pet needs to be seen.</p>
+    <div class="btn-row">
+      <a class="btn btn--primary" href="${tel}">${icon("phone")}Call ${esc(clinic.phone)}</a>
+      <a class="btn btn--book" ${href(LINK.headerBook)}>${icon("calendar")}${esc(LINK.headerBook.text)}</a>
+      ${MESSENGER ? `<a class="btn btn--outline" ${msgr}>${icon("chat")}Message us</a>` : ""}
+    </div>
+  </aside>`;
+
+const publisherLd = () => ({ "@type": "VeterinaryCare", name: clinic.name, url: SITE + "/", logo: SITE + "/assets/icons/icon-512.png", telephone: clinic.phoneInternational });
+const crumbsLd = (items) => ({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: items.map(([name, u], i) => ({ "@type": "ListItem", position: i + 1, name, item: SITE + u })) });
+
+function advicePage(a) {
+  const S = ADV.settings;
+  const r = renderArticle(a);
+  const related = a.related.map((s) => ADV.bySlug[s]).filter((x) => ADV.shown.has(x.slug));
+  const checked = a.reviewedBy ? `Checked by ${esc(a.reviewedBy)}` : "Awaiting check by a PawMedics vet";
+  const main = `<section class="page-hero page-hero--slim advice-hero">
+  <div class="wrap">
+    <div class="page-hero__copy">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/advice/">${esc(S.title)}</a> / ${esc(a.category)}</nav>
+      <h1>${esc(a.title)}</h1>
+      <p>${esc(a.summary)}</p>
+      <p class="advice-meta"><span>${checked}</span><span>Updated <time datetime="${a.updated}">${fmtDate(a.updated)}</time></span><span>${r.minutes} min read</span></p>
+    </div>
+  </div>
+</section>
+${a.draft ? `<div class="advice-draft" role="note"><div class="wrap">${esc(S.draftBanner)}</div></div>\n` : ""}<article class="section advice">
+  <div class="wrap advice__wrap">
+    <figure class="advice__photo">${photo(a.photo, a.photoAlt, "(max-width: 820px) 92vw, 760px", 'fetchpriority="high"')}</figure>
+    ${a.keyPoints.length ? `<aside class="advice-key" aria-labelledby="key-points"><h2 id="key-points">Key points</h2><ul class="ticks ticks--stack">${a.keyPoints.map((k) => `<li>${icon("check")}<span>${esc(k)}</span></li>`).join("")}</ul></aside>` : ""}
+    ${r.toc.length > 2 ? `<nav class="advice-toc" aria-label="On this page"><h2>On this page</h2><ol>${r.toc.map((t) => `<li><a href="#${t.id}">${esc(t.text)}</a></li>`).join("")}</ol></nav>` : ""}
+    <div class="advice__body">
+${r.html}
+    </div>
+    ${helpBox()}
+    <p class="advice-disclaimer">This article gives general information for pet owners in Malta and does not replace advice from a vet who has examined your pet. Written by the ${esc(S.author)}${a.reviewedBy ? `, checked by ${esc(a.reviewedBy)}` : ""}. First published <time datetime="${a.date}">${fmtDate(a.date)}</time>.</p>
+  </div>
+</article>
+${related.length ? `<section class="section section--cream">
+  <div class="wrap">
+    <div class="section-head"><div><h2>Related advice</h2></div><a href="/advice/" style="font-weight: 600">All ${esc(S.title.toLowerCase())} →</a></div>
+    <div class="advice-grid">
+      ${related.map(advCard).join("\n      ")}
+    </div>
+  </div>
+</section>` : ""}`;
+  const pageUrl = SITE + a.url;
+  const ld = [
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "@id": pageUrl + "#article",
+      headline: a.title,
+      description: a.description,
+      image: [SITE + `/assets/img/${a.photo}.jpg`],
+      datePublished: a.date,
+      dateModified: a.updated,
+      inLanguage: C.settings.language,
+      articleSection: a.category,
+      wordCount: r.words,
+      author: { "@type": "Organization", name: S.author, url: SITE + "/" },
+      publisher: publisherLd(),
+      mainEntityOfPage: { "@type": "WebPage", "@id": pageUrl, ...(a.reviewedBy ? { reviewedBy: { "@type": "Person", name: a.reviewedBy, jobTitle: "Veterinary surgeon", worksFor: { "@type": "VeterinaryCare", name: clinic.name } }, lastReviewed: a.updated } : {}) },
+      ...(a.pets ? { about: String(a.pets).split(",").map((p) => ({ "@type": "Thing", name: p.trim() })) } : {}),
+    },
+    crumbsLd([["Home", "/"], [S.title, "/advice/"], [a.title, a.url]]),
+    ...(r.faq.length ? [{ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: r.faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a.join(" ") } })) }] : []),
+  ];
+  return page({ title: a.seoTitle, description: a.description, pathName: a.url, noindex: a.draft, ogType: "article", image: a.photo, imageAlt: a.photoAlt, extraLd: ld, article: { published: a.date, modified: a.updated, section: a.category } }, main);
+}
+
+function adviceIndexPage() {
+  const S = ADV.settings;
+  const anyPublished = ADV.list.some((a) => !a.draft);
+  const main = `<section class="page-hero page-hero--slim advice-index-hero">
+  <div class="wrap">
+    <div class="page-hero__copy">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> / ${esc(S.title)}</nav>
+      <h1>${esc(S.heading)}</h1>
+      <p>${esc(S.intro)}</p>
+      <div class="btn-row"><a class="btn btn--book" ${href(LINK.headerBook)}>${icon("calendar")}${esc(LINK.headerBook.text)}</a><a class="btn btn--ghost" href="${tel}">${icon("phone")}${esc(clinic.phone)}</a></div>
+    </div>
+  </div>
+</section>
+${anyPublished ? "" : `<div class="advice-draft" role="note"><div class="wrap">Preview only: every article here is a draft waiting for a vet to check it.</div></div>\n`}<section class="section">
+  <div class="wrap">
+    <div class="advice-grid">
+      ${ADV.list.map(advCard).join("\n      ")}
+    </div>
+  </div>
+</section>
+${helpBox().replace('<aside class="advice-help"', '<aside class="advice-help advice-help--wide wrap"')}`;
+  const ld = [
+    { "@context": "https://schema.org", "@type": "CollectionPage", name: S.heading, description: S.description, url: SITE + "/advice/", inLanguage: C.settings.language, publisher: publisherLd(),
+      mainEntity: { "@type": "ItemList", itemListElement: ADV.list.map((a, i) => ({ "@type": "ListItem", position: i + 1, url: SITE + a.url, name: a.title })) } },
+    crumbsLd([["Home", "/"], [S.title, "/advice/"]]),
+  ];
+  return page({ title: S.seoTitle, description: S.description, pathName: "/advice/", noindex: !anyPublished, extraLd: ld }, main);
 }
 
 // ---------- pages ----------
@@ -448,9 +695,10 @@ ${C.services.filter((s) => s.show !== false).map((s) => `      <div class="card$
 
 <section class="section section--cream" id="pet-care">
   <div class="wrap">
-    <div class="section-head"><div><h2>Pet care in Malta</h2><p>Malta's climate brings its own challenges. These are the ones we're asked about most.</p></div></div>
+    <div class="section-head"><div><h2>Pet care in Malta</h2><p>Malta's climate brings its own challenges. These are the ones we're asked about most.</p></div>${ADV.list.length ? `
+      <a href="/advice/" style="font-weight: 600">All pet care advice →</a>` : ""}</div>
     <div class="grid grid--tips">
-${C.maltaTips.map((t) => `      <div class="card card--plain">${icon(t.icon, "card__icon")}<h3>${esc(t.title)}</h3><p>${esc(t.text)}</p></div>`).join("\n")}
+${C.maltaTips.map((t) => { const a = ADV.tipLink(t.title); return `      <div class="card card--plain">${icon(t.icon, "card__icon")}<h3>${esc(t.title)}</h3><p>${esc(t.text)}</p>${a ? `<a href="${a.url}" aria-label="Read more: ${esc(a.title)}">Read more →</a>` : ""}</div>`; }).join("\n")}
     </div>
   </div>
 </section>
@@ -850,7 +1098,7 @@ const css = fs.readFileSync(path.join(SRC, "styles.css"), "utf8");
 const js = appJs();
 // Version = fingerprint of the content + code, so any change produces a new version.
 ASSET_V = crypto.createHash("sha256")
-  .update(JSON.stringify(C)).update(css).update(js).update(fs.readFileSync(new URL(import.meta.url)))
+  .update(JSON.stringify(C)).update(ADV.files).update(css).update(js).update(fs.readFileSync(new URL(import.meta.url)))
   .digest("hex").slice(0, 10);
 
 write("styles.css", css);
@@ -863,9 +1111,18 @@ write("contact/thanks/index.html", contactThanksPage());
 write("offline/index.html", simplePage("You're offline", `<h1>You're offline</h1><p>We can't load this page without an internet connection. You can still call us on <a href="${tel}">${esc(clinic.phone)}</a>.</p><p style="margin-top: 16px"><strong>Opening hours</strong><br>${C.hours.map((h) => `${esc(h.days)}: ${hoursText(h)}`).join("<br>")}</p>`, "/offline/"));
 write("404.html", simplePage("Page not found", `<h1>Page not found</h1><p>Sorry, that page doesn't exist. <a ${href(OTHER.notFoundHome)}>${esc(OTHER.notFoundHome.text)}</a> or <a ${href(OTHER.notFoundBook)}>${esc(OTHER.notFoundBook.text)}</a>.</p>`, "/404"));
 write("book/index.html", bookRedirect());
+if (ADV.list.length) {
+  write("advice/index.html", adviceIndexPage());
+  ADV.list.forEach((a) => write(`advice/${a.slug}/index.html`, advicePage(a)));
+}
 write("manifest.webmanifest", manifest());
 write("robots.txt", `User-agent: *\nAllow: /\n\nSitemap: ${SITE}/sitemap.xml\n`);
-write("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${["/", "/acupuncture/", "/contact/", "/privacy/"].map((u) => `  <url><loc>${SITE}${u}</loc></url>`).join("\n")}\n</urlset>\n`);
+// Sitemap: drafts are never listed (they are only on the preview site, marked "noindex").
+const advPublished = ADV.list.filter((a) => !a.draft);
+const sitemapUrls = [["/"], ["/acupuncture/"], ["/contact/"], ["/privacy/"],
+  ...(advPublished.length ? [["/advice/", advPublished.map((a) => a.updated).sort().pop()]] : []),
+  ...advPublished.map((a) => [a.url, a.updated])];
+write("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${sitemapUrls.map(([u, d]) => `  <url><loc>${SITE}${u}</loc>${d ? `<lastmod>${d}</lastmod>` : ""}</url>`).join("\n")}\n</urlset>\n`);
 // Hosting rules (Netlify and Cloudflare Pages both read this file)
 write("_headers", `/sw.js
   Cache-Control: no-cache
@@ -886,3 +1143,4 @@ const precache = ["/", "/acupuncture/", "/contact/", "/privacy/", "/offline/", `
 write("sw.js", serviceWorker(ASSET_V, precache));
 
 console.log(`Built ${clinic.name} site → dist/  (version ${ASSET_V}, ${walk(OUT).length} files)`);
+if (ADV.all.length) console.log(`Pet care advice: ${ADV.list.length} of ${ADV.all.length} articles on this version (${ADV.isLive ? "live site: published articles only" : "preview/local: drafts included"}).`);

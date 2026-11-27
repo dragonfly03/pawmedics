@@ -14,6 +14,7 @@ is in one file, `content/site.json`, and this guide explains all of it.
 | Folder / file | What it is | Do you need to touch it? |
 |---|---|---|
 | `content/site.json` | **All the clinic details:** logo, hours, phone, services, vets, FAQs, acupuncture page. | **Yes, this is the one place to change things.** |
+| `content/advice/` | The Pet care advice articles, one file each (see section 4). | To add or edit articles. |
 | `dist/` | The finished website, ready to upload. Rebuilt from the content file every time. | Only to upload it (see section 2). Never edit it, because it's overwritten on every rebuild. |
 | `src/assets/img/` | The vet and acupuncture photos. | Only to swap photos (see section 6). |
 | `src/assets/icons/` | The placeholder paw icons, used until the real logo is added. | No |
@@ -91,6 +92,34 @@ section, so it's safe to leave it there.
 | `acupuncture` | Everything on the acupuncture page plus the acupuncture block on the home page. | `homeTeaser` is the home-page text. `fees` starts empty, so no fees box is shown; add rows like `{ "label": "Initial consultation", "price": "€XX" }` and the box appears with a Book button. |
 
 ---
+
+### Pet care advice articles (`content/advice/`)
+
+The **Pet care advice** section (`/advice/`) is built from the files in `content/advice/`:
+
+- `_settings.json`: the section's title, intro, search title and description, the
+  out-of-hours wording used in articles, and which home-page "Pet care in Malta" cards link to
+  which article.
+- One `.md` file per article. The file name becomes the web address
+  (`heatstroke-pets-summer-malta.md` → `/advice/heatstroke-pets-summer-malta/`).
+
+Each article starts with its details between two `---` lines: `title`, `seoTitle` (the title
+Google shows, about 60 characters), `description` (Google's summary, about 155 characters),
+`summary`, `category`, `photo` and `photoAlt`, `date`, `updated`, `status`, `reviewedBy`,
+`order`, `related` (other article file names, separated by commas) and `keyPoints`.
+The text below is written in Markdown: `## Heading`, `- bullet`, `1. step`, `**bold**`,
+`[link text](address)`. A `## Common questions` section with `### question` headings is also
+sent to Google as an FAQ. `{{phone}}`, `{{book}}` and `{{outOfHours}}` are filled in from the
+content files, so they stay correct when those details change.
+
+**Drafts and publishing.** `status: draft` articles appear only on the free preview address
+(and in local builds), with a "Draft" banner, and are hidden from Google. The live site only
+shows `status: published` articles. Before publishing, a vet must check the article and their
+name goes in `reviewedBy`, and every `[[TO CONFIRM: ...]]` note must be resolved and removed;
+the build stops otherwise. The "Pet care" menu item switches to the advice section as soon as
+at least one article is on the site; until then the live site is exactly as before.
+
+The PawMedics CMS doesn't edit articles yet (see `Ideas.txt`).
 
 ## 5. Logo and app icon
 
