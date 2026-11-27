@@ -1,0 +1,18 @@
+{
+  "_howTo": "Settings for the Pet care advice section. Each article is a .md file in this folder. An article marked 'status: draft' shows only on the preview site, with a 'Draft' banner. Change it to 'status: published' and fill in 'reviewedBy' (the vet who checked it) to put it on the live site.",
+  "title": "Pet care advice",
+  "heading": "Pet care advice from our vets in Malta",
+  "intro": "Practical advice for dog and cat owners in Malta, written by PawMedics and checked by our vets. If you're worried about your pet right now, please call us rather than searching online.",
+  "seoTitle": "Pet Care Advice from Vets in Malta | PawMedics",
+  "description": "Practical, vet-checked advice for dog and cat owners in Malta: summer heat, sandflies, fireworks, poisons, puppies and kittens, older pets and travel.",
+  "author": "PawMedics veterinary team",
+  "menu": { "text": "Pet care", "replacesUrl": "/#pet-care" },
+  "homeTipLinks": {
+    "Sandflies & leishmaniasis": "ticks-fleas-sandflies-dogs-malta",
+    "Summer heat": "heatstroke-pets-summer-malta",
+    "Travelling or relocating": "travelling-with-pets-from-malta",
+    "New puppy or kitten?": "puppy-kitten-first-year"
+  },
+  "outOfHours": "We don't run an out-of-hours service. When we're closed, call the national veterinary emergency helpline on 153 and choose extension 22. It is open 24 hours a day, and the staff will tell you which emergency clinic is on duty. The government emergency clinic in Reggie Miller Square, Fgura, is open from 8pm to 8am.",
+  "draftBanner": "Draft for vet review. This article is not on the live website yet."
+}
