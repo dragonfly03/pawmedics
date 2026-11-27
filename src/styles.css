@@ -80,6 +80,7 @@ p { margin: 0; }
 .topbar a.topbar__sister { font-weight: 600; gap: 6px; }
 .topbar a.topbar__sister .icon { width: 14px; height: 14px; }
 .topbar a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.topbar .topbar__hours-short { display: none; }
 
 /* Header */
 .header { background: #fff; border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 50; }
@@ -142,12 +143,13 @@ p { margin: 0; }
 /* Quick actions */
 .quick { position: relative; margin-top: -40px; }
 .quick__grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
-.quick a { display: flex; gap: 14px; align-items: center; padding: 18px; background: #fff; border-radius: 16px; border: 1px solid var(--line); box-shadow: 0 8px 24px rgba(59, 20, 76, 0.10); text-decoration: none; color: var(--text); }
+.quick a { display: flex; gap: 12px; align-items: center; padding: 18px 14px; background: #fff; border-radius: 16px; border: 1px solid var(--line); box-shadow: 0 8px 24px rgba(59, 20, 76, 0.10); text-decoration: none; color: var(--text); }
 .quick a:hover { border-color: var(--purple); }
-.quick__icon { width: 44px; height: 44px; border-radius: 12px; background: #F3EAF5; display: flex; align-items: center; justify-content: center; flex: none; color: var(--purple); }
+.quick__icon { width: 40px; height: 40px; border-radius: 12px; background: #F3EAF5; display: flex; align-items: center; justify-content: center; flex: none; color: var(--purple); }
 .quick__icon--book { background: var(--orange); color: #fff; }
-.quick strong { display: block; font-weight: 600; }
-.quick small { display: block; font-size: 0.875rem; color: var(--muted); }
+.quick strong { display: block; font-weight: 600; font-size: 0.95rem; }
+.quick small { display: block; font-size: 0.85rem; color: var(--muted); }
+.quick .quick__short { display: none; }
 
 /* Feature (acupuncture) */
 .feature { background: var(--purple); color: #fff; border-radius: 28px; padding: 48px; display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 40px; align-items: center; }
@@ -236,6 +238,10 @@ p { margin: 0; }
 .contact-urgent { display: flex; gap: 10px; align-items: flex-start; margin: 10px 0 22px; padding: 12px 14px; border-radius: 12px; background: var(--lav); color: var(--body); }
 .contact-urgent svg { width: 20px; height: 20px; flex: none; color: var(--purple); margin-top: 2px; }
 .contact-urgent a { font-weight: 700; white-space: nowrap; }
+/* "Prefer Messenger?" line above the form (only when clinic.messenger is set) */
+.contact-messenger { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin: -8px 0 22px; }
+.contact-messenger span { font-weight: 600; color: var(--purple-deep); }
+.contact-messenger .btn { min-height: 44px; padding: 0 18px; }
 .contact-form { display: flex; flex-direction: column; gap: 16px; }
 .field { display: flex; flex-direction: column; gap: 6px; font-weight: 600; color: var(--purple-deep); font-size: 0.95rem; }
 .field input, .field textarea { font: inherit; font-weight: 400; color: var(--body); padding: 12px 14px; border: 1px solid #CFC3D6; border-radius: 12px; background: #fff; width: 100%; box-sizing: border-box; }
@@ -249,7 +255,7 @@ p { margin: 0; }
 .contact-details h2, .contact-details h3 { color: #fff; }
 .contact-details h3 { margin-top: 10px; font-size: 1.15rem; }
 .contact-details a { color: #fff; }
-.contact-details .contact__phone, .contact-details__email, .contact-details__address { display: flex; gap: 10px; align-items: center; margin: 0; }
+.contact-details .contact__phone, .contact-details__email, .contact-details__messenger, .contact-details__address { display: flex; gap: 10px; align-items: center; margin: 0; }
 .contact-details__address { align-items: flex-start; }
 .contact-details svg { width: 20px; height: 20px; flex: none; }
 .contact-details .btn { align-self: flex-start; background: #fff; color: var(--purple-deep); border-color: #fff; }
@@ -319,6 +325,8 @@ p { margin: 0; }
 @media (max-width: 760px) {
   .section { padding: 56px 0; }
   .topbar__hide-sm { display: none !important; }
+  .topbar .topbar__hours-full { display: none; }
+  .topbar .topbar__hours-short { display: inline; white-space: nowrap; }
   .hero .wrap, .page-hero .wrap, .feature, .contact, .profile { grid-template-columns: 1fr; }
   .contact-page, .field-row { grid-template-columns: 1fr; }
   .contact-form-card, .contact-details { padding: 24px 20px; }
@@ -336,6 +344,10 @@ p { margin: 0; }
   body { padding-bottom: calc(76px + var(--safe-bottom)); }
   .action-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; padding: 10px 14px calc(10px + var(--safe-bottom)); background: rgba(255,255,255,0.97); border-top: 1px solid var(--line); box-shadow: 0 -6px 20px rgba(59,20,76,0.08); }
   .action-bar .btn { min-height: 52px; }
+  /* Three buttons (Call · Message · Book): icon above a one-line label, like an app's tab bar */
+  .action-bar--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding-left: 10px; padding-right: 10px; }
+  .action-bar--3 .btn { flex-direction: column; gap: 3px; min-height: 56px; padding: 4px 4px; font-size: 0.875rem; white-space: nowrap; border-radius: 12px; }
+  .action-bar--3 .btn .icon { width: 20px; height: 20px; }
   .team, .book-types { grid-template-columns: 1fr; }
   .about { grid-template-columns: 1fr; }
   .vet img { aspect-ratio: 4 / 3.6; }
@@ -349,8 +361,13 @@ p { margin: 0; }
   .review { flex: 0 0 84%; scroll-snap-align: center; }
 }
 
-@media (max-width: 420px) {
-  .quick__grid { grid-template-columns: 1fr; }
+/* Shortcut cards under the hero: 2 x 2 on phones, short labels, no subtitle */
+@media (max-width: 600px) {
+  .quick__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .quick a { flex-direction: column; align-items: flex-start; gap: 10px; padding: 14px; }
+  .quick small { display: none; }
+  .quick .quick__long { display: none; }
+  .quick .quick__short { display: inline; }
 }
 
 /* When opened as an installed app */
