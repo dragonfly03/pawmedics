@@ -513,14 +513,26 @@ function renderArticle(a) {
   return { html: out.join("\n"), toc, faq, minutes: Math.max(1, Math.round(words / 200)), words };
 }
 
+// Article photos may also have a sharper 1400px version (name-1400.webp) for large screens.
+const advPhoto = (name, alt, sizes, attrs = "") => {
+  const big = fs.existsSync(path.join(SRC, "assets", "img", `${name}-1400.webp`));
+  return `<img src="${imgUrl(`${name}-900.webp`)}" srcset="${imgUrl(`${name}-480.webp`)} 480w, ${imgUrl(`${name}-900.webp`)} 900w${big ? `, ${imgUrl(`${name}-1400.webp`)} 1400w` : ""}" sizes="${sizes}" alt="${esc(alt)}" ${attrs}>`;
+};
+const photoCredit = (a) => (a.photoCredit ? `<figcaption>Photo: ${a.photoCreditUrl ? `<a href="${esc(a.photoCreditUrl)}" target="_blank" rel="noopener">${esc(a.photoCredit)}</a>` : esc(a.photoCredit)}</figcaption>` : "");
+
 const advCard = (a) => `<a class="advice-card" href="${a.url}">
-        ${photo(a.photo, "", "(max-width: 760px) 92vw, 380px", 'loading="lazy"')}
+        ${advPhoto(a.photo, "", "(max-width: 760px) 92vw, 380px", 'loading="lazy"')}
         <span class="advice-card__body"><span class="eyebrow">${esc(a.category)}${a.draft ? ' · <span class="advice-card__draft">Draft</span>' : ""}</span><strong>${esc(a.title)}</strong><span>${esc(a.summary)}</span><span class="advice-card__more">Read more →</span></span>
       </a>`;
 
-const helpBox = () => `<aside class="advice-help" aria-label="Contact ${esc(clinic.name)}">
+const advFeature = (a) => `<a class="advice-feature" href="${a.url}">
+      ${advPhoto(a.photo, "", "(max-width: 900px) 92vw, 640px", 'fetchpriority="high"')}
+      <span class="advice-feature__body"><span class="eyebrow">${esc(a.category)}${a.draft ? ' · <span class="advice-card__draft">Draft</span>' : ""}</span><strong>${esc(a.title)}</strong><span>${esc(a.summary)}</span><span class="advice-card__more">Read the article →</span></span>
+    </a>`;
+
+const helpBox = (onIndex) => `<aside class="advice-help" aria-label="Contact ${esc(clinic.name)}">
     <h2>Worried about your pet?</h2>
-    <p>Every pet is different, and this article can't replace an examination. Call us and we'll tell you whether your pet needs to be seen.</p>
+    <p>Every pet is different, and ${onIndex ? "advice online" : "this article"} can't replace an examination. Call us and we'll tell you whether your pet needs to be seen.</p>
     <div class="btn-row">
       <a class="btn btn--primary" href="${tel}">${icon("phone")}Call ${esc(clinic.phone)}</a>
       <a class="btn btn--book" ${href(LINK.headerBook)}>${icon("calendar")}${esc(LINK.headerBook.text)}</a>
@@ -548,7 +560,7 @@ function advicePage(a) {
 </section>
 ${a.draft ? `<div class="advice-draft" role="note"><div class="wrap">${esc(S.draftBanner)}</div></div>\n` : ""}<article class="section advice">
   <div class="wrap advice__wrap">
-    <figure class="advice__photo">${photo(a.photo, a.photoAlt, "(max-width: 820px) 92vw, 760px", 'fetchpriority="high"')}</figure>
+    <figure class="advice__photo">${advPhoto(a.photo, a.photoAlt, "(max-width: 820px) 92vw, 760px", 'fetchpriority="high"')}${photoCredit(a)}</figure>
     ${a.keyPoints.length ? `<aside class="advice-key" aria-labelledby="key-points"><h2 id="key-points">Key points</h2><ul class="ticks ticks--stack">${a.keyPoints.map((k) => `<li>${icon("check")}<span>${esc(k)}</span></li>`).join("")}</ul></aside>` : ""}
     ${r.toc.length > 2 ? `<nav class="advice-toc" aria-label="On this page"><h2>On this page</h2><ol>${r.toc.map((t) => `<li><a href="#${t.id}">${esc(t.text)}</a></li>`).join("")}</ol></nav>` : ""}
     <div class="advice__body">
@@ -606,12 +618,13 @@ function adviceIndexPage() {
 </section>
 ${anyPublished ? "" : `<div class="advice-draft" role="note"><div class="wrap">Preview only: every article here is a draft waiting for a vet to check it.</div></div>\n`}<section class="section">
   <div class="wrap">
+    ${ADV.list.length > 3 ? advFeature(ADV.list[0]) : ""}
     <div class="advice-grid">
-      ${ADV.list.map(advCard).join("\n      ")}
+      ${(ADV.list.length > 3 ? ADV.list.slice(1) : ADV.list).map(advCard).join("\n      ")}
     </div>
   </div>
 </section>
-${helpBox().replace('<aside class="advice-help"', '<aside class="advice-help advice-help--wide wrap"')}`;
+${helpBox(true).replace('<aside class="advice-help"', '<aside class="advice-help advice-help--wide wrap"')}`;
   const ld = [
     { "@context": "https://schema.org", "@type": "CollectionPage", name: S.heading, description: S.description, url: SITE + "/advice/", inLanguage: C.settings.language, publisher: publisherLd(),
       mainEntity: { "@type": "ItemList", itemListElement: ADV.list.map((a, i) => ({ "@type": "ListItem", position: i + 1, url: SITE + a.url, name: a.title })) } },
