@@ -378,3 +378,75 @@ p { margin: 0; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
 }
+
+/* Pet care advice: article list and article pages (content/advice) */
+.advice-hero .wrap { grid-template-columns: minmax(0, 1fr); max-width: 800px; padding-top: 44px; padding-bottom: 44px; }
+.advice-index-hero .wrap { grid-template-columns: minmax(0, 1fr); max-width: var(--wrap); }
+.advice-index-hero .page-hero__copy { max-width: 760px; }
+.advice-hero h1 { font-size: clamp(1.9rem, 4.4vw, 2.9rem); }
+nav.crumbs a { text-decoration: underline; text-underline-offset: 2px; }
+.advice-meta { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.92rem !important; color: var(--on-dark); }
+.advice-meta span + span::before { content: "·"; margin-right: 18px; opacity: 0.7; }
+.advice-draft { background: #FFF1D6; color: #6B3A00; border-bottom: 1px solid #F3D29A; font-weight: 600; font-size: 0.95rem; }
+.advice-draft .wrap { padding-top: 12px; padding-bottom: 12px; }
+.advice { padding-top: 40px; }
+.advice__wrap { max-width: 800px; display: flex; flex-direction: column; gap: 28px; }
+.advice__photo { margin: 0; }
+.advice__photo img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 22px; }
+.advice-key { background: var(--lav); border-radius: 20px; padding: 24px 26px; }
+.advice-key h2, .advice-toc h2 { font-size: 1.15rem; margin-bottom: 14px; }
+.advice-key li { color: var(--text); }
+.advice-toc { border: 1px solid var(--line); border-radius: 20px; padding: 22px 26px; }
+.advice-toc ol { margin: 0; padding-left: 20px; columns: 2 240px; column-gap: 32px; }
+.advice-toc li { margin: 0 0 6px; break-inside: avoid; }
+.advice__body { color: var(--body); font-size: 1.07rem; line-height: 1.7; }
+.advice__body > * + * { margin-top: 16px; }
+.advice__body h2 { font-size: clamp(1.45rem, 3vw, 1.85rem); margin-top: 40px; scroll-margin-top: 90px; }
+.advice__body h3 { font-size: 1.2rem; margin-top: 28px; scroll-margin-top: 90px; }
+.advice__body h2 + *, .advice__body h3 + * { margin-top: 10px; }
+.advice__body ul, .advice__body ol { padding-left: 22px; }
+.advice__body li + li { margin-top: 6px; }
+.advice__body strong { color: var(--text); }
+.advice__body a { font-weight: 500; }
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 16px; }
+.advice__body table { width: 100%; border-collapse: collapse; font-size: 0.97rem; }
+.advice__body th, .advice__body td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.advice__body thead th { background: var(--lav); color: var(--purple-deep); }
+.advice__body tbody th { font-weight: 600; color: var(--text); white-space: nowrap; }
+.advice__body tr:last-child > * { border-bottom: 0; }
+.advice-note { display: flex; gap: 12px; background: var(--cream); border-left: 4px solid var(--orange); border-radius: 12px; padding: 16px 18px; color: var(--text); }
+.advice-note .icon { color: var(--orange); margin-top: 4px; }
+.advice-todo { background: #FFF1D6; border: 2px dashed #E0A33B; border-radius: 12px; padding: 14px 18px; color: #6B3A00; }
+.advice-help { background: var(--purple); color: #fff; border-radius: 24px; padding: 28px; display: flex; flex-direction: column; gap: 12px; }
+.advice-help h2 { color: #fff; font-size: 1.5rem; }
+.advice-help p { color: var(--on-dark); }
+.advice-help .btn-row { margin-top: 6px; }
+.advice-help .btn--primary { background: #fff; color: var(--purple-deep); }
+.advice-help .btn--outline { background: transparent; color: #fff; border-color: rgba(255,255,255,0.7); }
+.advice-help--wide { margin-bottom: 72px; }
+.advice-disclaimer { font-size: 0.88rem; color: var(--muted); }
+.advice-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 22px; }
+.advice-card { display: flex; flex-direction: column; background: #fff; border: 1px solid var(--line); border-radius: 20px; overflow: hidden; text-decoration: none; color: var(--text); transition: box-shadow 0.15s, transform 0.15s; }
+.advice-card:hover { box-shadow: 0 10px 28px rgba(59, 20, 76, 0.12); transform: translateY(-2px); color: var(--text); }
+.advice-card img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; }
+.advice-card__body { display: flex; flex-direction: column; gap: 8px; padding: 20px 22px 22px; flex: 1; }
+.advice-card strong { font-family: Montserrat, Inter, sans-serif; font-size: 1.12rem; line-height: 1.25; color: var(--purple-deep); }
+.advice-card__body > span:not(.eyebrow):not(.advice-card__more) { color: var(--muted); font-size: 0.95rem; flex: 1; }
+.advice-card__more { font-weight: 600; color: var(--purple); }
+.advice-card__draft { color: #9C431A; }
+.card--plain > a { margin-top: auto; }
+@media (max-width: 760px) {
+  .advice { padding-top: 24px; }
+  .advice-help { padding: 22px; }
+  .advice-help .btn-row .btn { flex: 1 1 100%; }
+  .advice-meta span + span::before { margin-right: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .advice-card { transition: none; }
+  .advice-card:hover { transform: none; }
+}
+@media (max-width: 600px) {
+  .advice__body table { font-size: 0.88rem; }
+  .advice__body th, .advice__body td { padding: 8px 10px; }
+  .advice__body tbody th { white-space: normal; min-width: 88px; }
+}
