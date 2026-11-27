@@ -5,8 +5,8 @@ description: What happens at a pet acupuncture session at PawMedics in Malta: th
 summary: A step-by-step look at acupuncture for dogs, cats and rabbits, from the first consultation to follow-up sessions.
 category: Acupuncture
 pets: Dogs, cats, rabbits
-photo: dr-teresa-acupuncture-1
-photoAlt: Dr. Teresa Gatt smiling as she gives acupuncture to a relaxed spaniel
+photo: advice-acupuncture
+photoAlt: Simple illustration of a relaxed dog lying down with fine acupuncture needles along its back
 date: 2026-11-27
 updated: 2026-11-27
 status: draft

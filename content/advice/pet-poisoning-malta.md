@@ -5,8 +5,10 @@ description: Rat bait, slug pellets, human painkillers, dog flea treatments used
 summary: Rat and mouse bait, human painkillers, flea treatments and garden chemicals that poison pets, and what to do if it happens.
 category: Safety
 pets: Dogs, cats
-photo: dr-adam-at-work
-photoAlt: Dr. Adam holding a small chihuahua while a nurse checks its paw
+photo: advice-poisons
+photoAlt: A white dog sniffing the ground beside a potted plant and a garden hose
+photoCredit: Desiree M on Unsplash
+photoCreditUrl: https://unsplash.com/photos/smF9W3Jk-VQ
 date: 2026-11-27
 updated: 2026-11-27
 status: draft

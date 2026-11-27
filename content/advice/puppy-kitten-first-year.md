@@ -5,8 +5,10 @@ description: A vet's plan for a new puppy or kitten in Malta: vaccinations, worm
 summary: A month-by-month plan for the first year: vaccinations, worming, microchipping, parasite protection and neutering.
 category: Puppies & kittens
 pets: Dogs, cats
-photo: dr-teresa-at-work-1
-photoAlt: Dr. Teresa and a nurse examining a young brown puppy
+photo: advice-puppy-kitten
+photoAlt: A tabby cat and a black-and-white puppy lying together on the grass
+photoCredit: Andrew S on Unsplash
+photoCreditUrl: https://unsplash.com/photos/ouo1hbizWwo
 date: 2026-11-27
 updated: 2026-11-27
 status: draft

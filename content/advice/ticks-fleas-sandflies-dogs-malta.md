@@ -5,8 +5,10 @@ description: Sandflies spread leishmaniasis to dogs in Malta, and ticks and flea
 summary: How sandflies, ticks and fleas affect dogs in Malta, the best ways to protect your dog, and how to keep cats safe from dog treatments.
 category: Parasites
 pets: Dogs, cats
-photo: dr-andrew
-photoAlt: Dr. Andrew Cachia with a black-and-white dog on the examination table
+photo: advice-parasites
+photoAlt: A brown-and-white puppy scratching its ear on the grass
+photoCredit: Helena Lopes on Unsplash
+photoCreditUrl: https://unsplash.com/photos/hWPqYBmDchw
 date: 2026-11-27
 updated: 2026-11-27
 status: draft

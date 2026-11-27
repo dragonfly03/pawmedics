@@ -5,8 +5,10 @@ description: Taking your dog or cat abroad from Malta? EU pet passport, microchi
 summary: The paperwork, vaccines and timings for travelling with your dog or cat, plus health risks to know about in other countries.
 category: Travel
 pets: Dogs, cats
-photo: dr-teresa
-photoAlt: Dr. Teresa Gatt cuddling a fluffy puppy
+photo: advice-travel
+photoAlt: A French bulldog waiting at a sunny doorway next to two suitcases
+photoCredit: Kit (formerly ConvertKit) on Unsplash
+photoCreditUrl: https://unsplash.com/photos/xCmlTJmMyhQ
 date: 2026-11-27
 updated: 2026-11-27
 status: draft
