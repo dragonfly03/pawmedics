@@ -24,6 +24,8 @@ const localityLine = [clinic.address.locality, String(clinic.address.postcode ||
 const fullAddress = `${clinic.address.line1}, ${localityLine}, ${clinic.address.country}`;
 const fmtTime = (t) => { const [h, m] = t.split(":").map(Number); const ap = h >= 12 ? "pm" : "am"; const hh = h % 12 || 12; return m ? `${hh}:${String(m).padStart(2, "0")}${ap}` : `${hh}${ap}`; };
 const hoursText = (h) => (h.closed ? "Closed" : `${fmtTime(h.open)} – ${fmtTime(h.close)}`);
+// Phone version of the top-bar hours: open days only, so it fits on one line.
+const hoursShort = () => C.hours.filter((h) => !h.closed).map((h) => `${h.short} ${fmtTime(h.open)}–${fmtTime(h.close)}`).join(" · ");
 const hoursSummary = () => {
   const open = C.hours.filter((h) => !h.closed).map((h) => `${h.short} ${fmtTime(h.open)}–${fmtTime(h.close)}`);
   const closed = C.hours.filter((h) => h.closed).map((h) => h.short);
@@ -44,6 +46,7 @@ const ICONS = {
   bug: '<path d="M8 2l1.9 1.9M16 2l-1.9 1.9M9 7.1V6a3 3 0 0 1 6 0v1.1M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6zM12 20v-9M6.5 13H3M21 13h-3.5M6 17l-3 2M18 17l3 2M6 9 3 7M18 9l3-2"/>',
   paw: '<circle cx="5.5" cy="10" r="2"/><circle cx="9.5" cy="5.5" r="2"/><circle cx="14.5" cy="5.5" r="2"/><circle cx="18.5" cy="10" r="2"/><path d="M12 12c-3 0-5.5 3.5-5.5 6 0 1.7 1.3 2.5 3 2.5 1 0 1.6-.5 2.5-.5s1.5.5 2.5.5c1.7 0 3-.8 3-2.5 0-2.5-2.5-6-5.5-6z"/>',
   download: '<path d="M12 3v12M7 10l5 5 5-5M5 21h14"/>',
+  chat: '<path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5z"/>',
 };
 // Filled star for review ratings (separate from the outline icons above).
 const star = (cls = "star") => `<svg class="${cls}" aria-hidden="true" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z"/></svg>`;
@@ -68,8 +71,10 @@ const LINK = {
   phoneMenuCall: L("everyPage", "phoneMenuCall", "text"),
   footerBook: L("everyPage", "footerBook", "text", "url"),
   footerFacebook: L("everyPage", "footerFacebook", "text", "url"),
+  footerMessenger: L("everyPage", "footerMessenger", "text"),
   footerPrivacy: L("everyPage", "footerPrivacy", "text", "url"),
   phoneBarCall: L("everyPage", "phoneBarCall", "text"),
+  phoneBarMessage: L("everyPage", "phoneBarMessage", "text"),
   phoneBarBook: L("everyPage", "phoneBarBook", "text", "url"),
 };
 const MENU = (C.links && C.links.everyPage && C.links.everyPage.menu) || stop("links.everyPage.menu is missing.");
@@ -85,6 +90,7 @@ const HOME = {
   quickCall: L("homePage", "quickCall", "text", "smallText"),
   quickDirections: L("homePage", "quickDirections", "text", "url"),
   quickMessage: L("homePage", "quickMessage", "text", "smallText", "url"),
+  quickMessenger: L("homePage", "quickMessenger", "text", "smallText"),
   acupunctureBook: L("homePage", "acupunctureBook", "text", "url"),
   acupunctureMore: L("homePage", "acupunctureMore", "text", "url"),
   servicesBook: L("homePage", "servicesBook", "text", "url"),
@@ -105,6 +111,8 @@ const CONTACT_LINK = {
   map: L("contactPage", "map", "text", "url"),
   privacy: L("contactPage", "privacy", "text", "url"),
   thanksHome: L("contactPage", "thanksHome", "text", "url"),
+  messengerButton: L("contactPage", "messengerButton", "text"),
+  messengerDetails: L("contactPage", "messengerDetails", "text"),
 };
 const OTHER = {
   privacyBooking: L("otherPages", "privacyBooking", "text", "url"),
@@ -172,6 +180,19 @@ const CP = C.contactPage || stop("contactPage is missing.");
 ["name", "email", "phone", "pet", "message"].forEach((k) => { if (!CP.fields || !String(CP.fields[k] || "").trim()) stop(`contactPage.fields needs a "${k}" label.`); });
 const ratingLine = `${REVIEWS.rating} on ${REVIEWS.source || "Google"} · ${REVIEWS.count} reviews`;
 const href = (entry) => `href="${esc(entry.url.trim())}"`;
+
+// Facebook Messenger (clinic.messenger in content/site.json). Leave it "" and every Messenger button
+// disappears. Messenger links always open in a new tab.
+const MESSENGER = String(clinic.messenger || "").trim();
+if (MESSENGER && !/^https:\/\//.test(MESSENGER)) stop('clinic.messenger must start with https:// (for example "https://m.me/vetsmalta"), or be "" to hide the Messenger buttons.');
+const msgr = `href="${esc(MESSENGER)}" target="_blank" rel="noopener"`;
+
+// Shortcut-card label: "phoneText" (optional) is shown instead of "text" on narrow phones.
+const quickLabel = (entry, extra = "") => {
+  const long = `${esc(entry.text)}${extra}`;
+  const short = String(entry.phoneText || "").trim();
+  return short ? `<span class="quick__long">${long}</span><span class="quick__short">${esc(short)}${extra}</span>` : long;
+};
 
 const icon = (name, cls = "icon") => `<svg class="${cls}" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]}</svg>`;
 
@@ -247,7 +268,7 @@ ${noticesHtml()}
 <div class="topbar">
   <div class="wrap">
     <div class="topbar__group">
-      <span>${icon("clock")}${esc(hoursSummary())}</span>
+      <span>${icon("clock")}<span class="topbar__hours-full">${esc(hoursSummary())}</span><span class="topbar__hours-short">${esc(hoursShort())}</span></span>
       <a class="topbar__hide-sm" ${href(LINK.topBarAddress)}>${icon("pin")}${esc(LINK.topBarAddress.text)}</a>
     </div>
     <div class="topbar__group topbar__hide-sm">
@@ -302,14 +323,16 @@ function footer() {
       <span class="footer__title">More</span>
       <a ${href(LINK.footerBook)}>${esc(LINK.footerBook.text)}</a>
       <a ${href(LINK.footerFacebook)}>${esc(LINK.footerFacebook.text)}</a>
+      ${MESSENGER ? `<a ${msgr}>${esc(LINK.footerMessenger.text)}</a>` : ""}
       <a ${href(LINK.footerPrivacy)}>${esc(LINK.footerPrivacy.text)}</a>
       <button class="btn btn--ghost install-btn" type="button" hidden>${icon("download")}Install the app</button>
     </div>
   </div>
   <div class="footer__legal"><div class="wrap"><span>© ${year} ${esc(clinic.legalName)}</span><span>${esc(SITE.replace(/^https?:\/\//, ""))}</span></div></div>
 </footer>
-<div class="action-bar" role="region" aria-label="Quick actions">
+<div class="action-bar${MESSENGER ? " action-bar--3" : ""}" role="region" aria-label="Quick actions">
   <a class="btn btn--primary" href="${tel}">${icon("phone")}${esc(LINK.phoneBarCall.text)}</a>
+  ${MESSENGER ? `<a class="btn btn--outline" ${msgr}>${icon("chat")}${esc(LINK.phoneBarMessage.text)}</a>` : ""}
   <a class="btn btn--book" ${href(LINK.phoneBarBook)}>${icon("calendar")}${esc(LINK.phoneBarBook.text)}</a>
 </div>
 <script src="/app.js?v=${ASSET_V}" defer></script>
@@ -374,10 +397,12 @@ function homePage() {
 
 <section class="quick" aria-label="Quick actions">
   <div class="wrap quick__grid">
-    <a ${href(HOME.quickBook)}><span class="quick__icon quick__icon--book">${icon("calendar")}</span><span><strong>${esc(HOME.quickBook.text)}</strong><small>${esc(HOME.quickBook.smallText)}</small></span></a>
-    <a href="${tel}"><span class="quick__icon">${icon("phone")}</span><span><strong>${esc(HOME.quickCall.text)} ${esc(clinic.phone)}</strong><small>${esc(HOME.quickCall.smallText)}</small></span></a>
-    <a ${href(HOME.quickDirections)}><span class="quick__icon">${icon("pin")}</span><span><strong>${esc(HOME.quickDirections.text)}</strong><small>${esc(clinic.address.locality)}, ${esc(clinic.address.country)}</small></span></a>
-    <a ${href(HOME.quickMessage)}><span class="quick__icon">${icon("mail")}</span><span><strong>${esc(HOME.quickMessage.text)}</strong><small>${esc(HOME.quickMessage.smallText)}</small></span></a>
+    <a ${href(HOME.quickBook)}><span class="quick__icon quick__icon--book">${icon("calendar")}</span><span><strong>${quickLabel(HOME.quickBook)}</strong><small>${esc(HOME.quickBook.smallText)}</small></span></a>
+    <a href="${tel}"><span class="quick__icon">${icon("phone")}</span><span><strong>${quickLabel(HOME.quickCall, ` ${esc(clinic.phone)}`)}</strong><small>${esc(HOME.quickCall.smallText)}</small></span></a>
+    <a ${href(HOME.quickDirections)}><span class="quick__icon">${icon("pin")}</span><span><strong>${quickLabel(HOME.quickDirections)}</strong><small>${esc(clinic.address.locality)}, ${esc(clinic.address.country)}</small></span></a>
+    ${MESSENGER
+      ? `<a ${msgr}><span class="quick__icon">${icon("chat")}</span><span><strong>${quickLabel(HOME.quickMessenger)}</strong><small>${esc(HOME.quickMessenger.smallText)}</small></span></a>`
+      : `<a ${href(HOME.quickMessage)}><span class="quick__icon">${icon("mail")}</span><span><strong>${quickLabel(HOME.quickMessage)}</strong><small>${esc(HOME.quickMessage.smallText)}</small></span></a>`}
   </div>
 </section>
 
@@ -601,6 +626,7 @@ function contactPage() {
     <div class="contact-form-card">
       <h2>${esc(CP.formTitle)}</h2>
       <p class="contact-urgent">${icon("phone")}<span>${esc(CP.urgentNote)} <a href="${tel}">${esc(clinic.phone)}</a></span></p>
+      ${MESSENGER ? `<p class="contact-messenger">${String(CP.messengerNote || "").trim() ? `<span>${esc(CP.messengerNote)}</span>` : ""}<a class="btn btn--outline" ${msgr}>${icon("chat")}${esc(CONTACT_LINK.messengerButton.text)}</a></p>` : ""}
       <form class="contact-form" name="contact" method="POST" action="/contact/thanks/" data-netlify="true" netlify-honeypot="company">
         <p class="hp" aria-hidden="true"><label>Leave this empty <input name="company" tabindex="-1" autocomplete="off"></label></p>
         ${field("name", F.name, "text", 'required autocomplete="name" maxlength="120"')}
@@ -615,6 +641,7 @@ function contactPage() {
       <h2>${esc(CP.detailsTitle)}</h2>
       <a class="contact__phone" href="${tel}">${icon("phone")}${esc(clinic.phone)}</a>
       <a class="contact-details__email" href="${mail}">${icon("mail")}${esc(clinic.email)}</a>
+      ${MESSENGER ? `<a class="contact-details__messenger" ${msgr}>${icon("chat")}${esc(CONTACT_LINK.messengerDetails.text)}</a>` : ""}
       <p class="contact-details__address">${icon("pin")}<span>${esc(clinic.name)}<br>${esc(fullAddress)}</span></p>
       <a class="btn btn--primary" ${href(CONTACT_LINK.map)}>${esc(CONTACT_LINK.map.text)}</a>
       <h3 id="hours">${esc(CP.hoursTitle)}</h3>
