@@ -4,18 +4,18 @@
     "editingRules": "Only change text INSIDE the quotes \"...\". Keep quotes, colons and commas. true/false have no quotes. When adding a list item, copy an existing { ... } item and put a comma between items but not after the last one. Check the file at jsonlint.com before publishing. If the file has a mistake, the build stops and the live site stays as it was.",
     "settings": "showInstallButton: false for now; true shows an \"Install the app\" button (app phase). themeColor = colour of the phone top bar in the app.",
     "logo": "The logo mark (cross and paw) is saved in the site at src/assets/icons/logo-mark.png and set in logo.url as \"/assets/icons/logo-mark.png\". The app icons and browser-tab icon are in src/assets/icons (made from the PawMedics square logo). To use a different logo instead, either put a file in src/assets/brand and give its path starting with /, or upload it to imgbb.com, open it, choose \"Direct links\" and paste the link that starts with https://i.ibb.co/ (ending .png or .jpg) into logo.url. The normal https://ibb.co/ page link will NOT work. For the phone app icon, upload a SQUARE 512 x 512 PNG and paste its direct link into logo.appIconUrl. Set showNameNextToLogo to false if the logo already contains the name. alt = description for screen readers. Leave fields empty (\"\") to keep the placeholder paw. The build saves a copy of the images inside the site; if it cannot download them (wrong link, or built somewhere without internet access, e.g. by Claude), it still finishes and links to ImgBB directly instead (works, but not offline).",
-    "clinic": "address: line1 = number and street, then locality, postcode and country (postcode is shown in the full address and given to Google). phone = how the number is shown; phoneInternational = what phones dial (keep +356).",
-    "links": "EVERY link and button on the site, grouped by page (everyPage = top bar, menu, footer and the phone's bottom Call/Book bar). Each has its own text and url, so each booking button can go to a different place: change one and the others stay as they are. A url can be a full web address (https://...) or a page on this site (/acupuncture/, /contact/). Entries with text but no url are Call or Email buttons: they always use the phone number or email in clinic, and the number or email is shown with the text automatically (the narrow Call button in the phone's bottom bar shows the text only). topBarAddress is the address shown in the top bar (kept short so the bar fits on one line); the full address comes from clinic.address. Its url is also given to Google as the clinic's map. The other clinic is linked from three places, each set separately: topBarSisterClinic (top bar on every page; hidden on phones to save space), heroSisterClinic (the line under the main booking buttons on the home page) and homePage.sisterClinic (the Vetcare card in \"Two clinics, one team\"). footerFacebook's url is also given to Google as the clinic's Facebook page. The menu is a list: copy an item to add a menu link. app = the shortcuts shown when the installed app's icon is long-pressed on Android; the acupuncture shortcut must be a page on this site. Two links are fixed on purpose: the logo always goes to the home page, and the hidden \"Skip to content\" link for screen readers.",
+    "clinic": "address: line1 = number and street, then locality, postcode and country (postcode is shown in the full address and given to Google). phone = how the number is shown; phoneInternational = what phones dial (keep +356). messenger = the Facebook Messenger link (https://m.me/vetsmalta). It adds a Message button to the phone's bottom bar, a \"Message us on Facebook\" card on the home page, a \"Prefer Messenger?\" button and a Messenger line on the Contact page, and Messenger in the footer; all open in a new tab. Set it to \"\" and every Messenger button disappears.",
+    "links": "EVERY link and button on the site, grouped by page (everyPage = top bar, menu, footer and the phone's bottom Call/Book bar). Each has its own text and url, so each booking button can go to a different place: change one and the others stay as they are. A url can be a full web address (https://...) or a page on this site (/acupuncture/, /contact/). Entries with text but no url are Call, Email or Messenger buttons: they always use the phone number, email or Messenger link in clinic, and the number or email is shown with the text automatically (the narrow buttons in the phone's bottom bar, Call · Message · Book, show the text only, so keep those words short). The four home-page shortcut cards (homePage.quickBook, quickCall, quickDirections, quickMessenger) can have a phoneText: a shorter label used on phones, where the cards sit two by two without their small grey line. quickMessage (Send us a message) is used instead of quickMessenger if clinic.messenger is empty. topBarAddress is the address shown in the top bar (kept short so the bar fits on one line); the full address comes from clinic.address. Its url is also given to Google as the clinic's map. The other clinic is linked from three places, each set separately: topBarSisterClinic (top bar on every page; hidden on phones to save space), heroSisterClinic (the line under the main booking buttons on the home page) and homePage.sisterClinic (the Vetcare card in \"Two clinics, one team\"). footerFacebook's url is also given to Google as the clinic's Facebook page. The menu is a list: copy an item to add a menu link. app = the shortcuts shown when the installed app's icon is long-pressed on Android; the acupuncture shortcut must be a page on this site. Two links are fixed on purpose: the logo always goes to the home page, and the hidden \"Skip to content\" link for screen readers.",
     "hours": "24-hour times, e.g. \"19:00\" (shown as 7pm). For a closed day use \"closed\": true. schemaDays = English day names the row covers (used by Google). Hours appear in the top bar, contact section, footer and offline page.",
-    "contactPage": "The Contact page (/contact/): headings, the wording above and below the message form, each field's label (fields), the button text, and the thank-you page shown after a message is sent (thanksTitle, thanksText). privacyPageText is the paragraph about the form on the Privacy page. The phone number and email are added automatically from clinic. Messages arrive in Netlify (Forms) and by email. Its links (Home, Book online, Google Maps, Privacy page, Back to the home page) are under links.contactPage.",
+    "contactPage": "The Contact page (/contact/): headings, the wording above and below the message form, each field's label (fields), the button text, and the thank-you page shown after a message is sent (thanksTitle, thanksText). privacyPageText is the paragraph about the form on the Privacy page. The phone number and email are added automatically from clinic. Messages arrive in Netlify (Forms) and by email. messengerNote is the short question before the Messenger button above the form (\"Prefer Messenger?\"). Its links (Home, Book online, Google Maps, Privacy page, Back to the home page, and the wording of the two Messenger links) are under links.contactPage.",
     "notices": "Messages shown in a bar at the very top of every page, for example Christmas hours or a closure. Each notice appears by itself on its \"from\" date and disappears by itself after its \"until\" date (Malta time), so notices can be added weeks ahead and need no extra publish to switch on or off. Dates are written year-month-day, e.g. \"2026-12-24\". \"show\": false switches a notice off completely. linkText and linkUrl are optional (both or neither). Several notices can be listed; all that are in date show. Copy an existing { ... } item to add one.",
     "emergency": "The same message also appears in the first FAQ and in the \"Summer heat\" tip; update those too if it changes.",
-    "vets": "Keep Dr. Andrew FIRST and Dr. Teresa SECOND: the home-page photo pair with the \"Vet / Not Vets\" arrows and the acupuncture page depend on this order. Further vets (e.g. Dr. Adam) go after them and appear in \"Meet our vets\". \"partner\": true marks the clinic partners (named in \"Two clinics, one team\"). Bios starting \"[Placeholder bio]\" are dummy text to replace; an empty bio is hidden. photo = image name in src/assets/img. If Dr. Andrew's or Dr. Teresa's photo is replaced, ask Claude to redraw the arrows.",
+    "vets": "Keep Dr. Andrew FIRST and Dr. Teresa SECOND: the home-page photo pair with the \"Vet / Not Vets\" arrows and the acupuncture page depend on this order. Further vets (e.g. Dr. Adam) go after them and appear in \"Meet our vets\". \"partner\": true marks the clinic partners (named in \"Two clinics, one team\"). Bios are empty (\"\") for now, so they are hidden; type a bio between the quotes to show it. photo = image name in src/assets/img. If Dr. Andrew's or Dr. Teresa's photo is replaced, ask Claude to redraw the arrows.",
     "bookOnline": "The \"What you can book online\" cards on the home page. Each card has its own button text and link (linkText, linkUrl), so if Provet gives a direct link for a booking type it can go here. notSure is the line under the cards; the phone number and email are added automatically. \"show\": false hides the section.",
     "about": "The \"About PawMedics\" section on the home page: paragraphs (one per item), a photo with its caption. \"show\": false hides it.",
     "gallery": "The \"Care in action\" photo strip on the home page. Each item = photo name in src/assets/img, alt (description for screen readers) and caption. Add, remove or reorder freely; \"show\": false hides it.",
     "reviews": "\"show\": false on a single review hides just that card (Keith C. is kept that way so a 3-across layout stays even). The Google rating and the review cards on the home page. rating and count are typed in by hand, so update them now and then from Google (they also show under the main booking buttons). Each item is one review card: name (first name and initial), stars (1 to 5) and text. Keep the reviewer's own words; where a review is shortened, mark the missing part with … . Add, remove or reorder items freely; set \"show\": false to hide the whole section. The links to Google are links.homePage.heroReviews and links.homePage.reviewsAll.",
-    "services": "\"show\": true/false shows or hides a service (set false for anything the Swatar clinic does not offer). \"featured\": true = purple outline. \"link\" adds a link at the bottom of the card; \"linkText\" is its wording (\"Learn more\" if left out).",
+    "services": "\"show\": true/false shows or hides a service (set false for anything the Swatar clinic does not offer). \"featured\": true = purple outline. \"link\" adds a link at the bottom of the card; \"linkText\" is its wording (\"Learn more\" if left out). Acupuncture (TCVM) is hidden on purpose (it has its own section above), leaving 12 cards in even rows; if you show or add a card, aim for 12 or another number that divides by 4 and 3.",
     "maltaTips": "icon can be bug, sun, plane or paw.",
     "faq": "Home-page questions; the first one is shown open.",
     "acupuncture": "photo = picture in the home-page acupuncture block; pagePhoto = picture at the top of the acupuncture page; gallery = the dogs / cats / rabbits photos on the acupuncture page. homeTeaser = text in the home-page acupuncture block. fees is empty, so no fees box shows. Add rows like { \"label\": \"Initial consultation\", \"price\": \"€XX\" } and the fees box appears automatically with a Book button (its wording and link are links.acupuncturePage.feesBook)."
@@ -36,10 +36,11 @@
     "name": "PawMedics",
     "legalName": "PawMedics Limited",
     "tagline": "Veterinary clinic · part of the Vetcare family",
-    "description": "Small-animal vets in Swatar, Malta. Consultations, vaccinations, surgery, diagnostics and veterinary acupuncture. Book online.",
+    "description": "Small-animal vets in Swatar, Malta. Consultations, vaccinations, surgery, diagnostics and veterinary acupuncture. Book online.  Sister company of VetCare in San Gwann, Malta.",
     "phone": "2133 5793",
     "phoneInternational": "+35621335793",
     "email": "info@pawmedics.mt",
+    "messenger": "https://m.me/vetsmalta",
     "address": {
       "line1": "42, Triq Guzepp Xuereb",
       "locality": "Swatar",
@@ -63,9 +64,11 @@
       "phoneMenuCall": { "text": "Call" },
       "footerBook": { "text": "Book online", "url": "https://my.provet.com/pawmedics-limited/pawmedics-limited" },
       "footerFacebook": { "text": "Facebook", "url": "https://www.facebook.com/vetsmalta" },
+      "footerMessenger": { "text": "Messenger" },
       "footerPrivacy": { "text": "Privacy", "url": "/privacy/" },
       "phoneBarCall": { "text": "Call" },
-      "phoneBarBook": { "text": "Book online", "url": "https://my.provet.com/pawmedics-limited/pawmedics-limited" }
+      "phoneBarMessage": { "text": "Message" },
+      "phoneBarBook": { "text": "Book", "url": "https://my.provet.com/pawmedics-limited/pawmedics-limited" }
     },
     "homePage": {
       "heroBook": { "text": "Book an appointment", "url": "https://my.provet.com/pawmedics-limited/pawmedics-limited" },
@@ -75,6 +78,7 @@
       "quickBook": { "text": "Book online", "smallText": "Pick a time that suits you", "url": "https://my.provet.com/pawmedics-limited/pawmedics-limited" },
       "quickCall": { "text": "Call", "smallText": "Speak to the clinic" },
       "quickDirections": { "text": "Get directions", "url": "https://maps.app.goo.gl/ACgmMMcnBZhCT744A" },
+      "quickMessenger": { "text": "Message us on Facebook", "phoneText": "Message us", "smallText": "Chat with us on Messenger" },
       "quickMessage": { "text": "Send us a message", "smallText": "Use our contact form", "url": "/contact/" },
       "acupunctureBook": { "text": "Book an acupuncture session", "url": "https://my.provet.com/pawmedics-limited/pawmedics-limited" },
       "acupunctureMore": { "text": "How acupuncture works", "url": "/acupuncture/" },
@@ -88,7 +92,9 @@
       "book": { "text": "Book online", "url": "https://my.provet.com/pawmedics-limited/pawmedics-limited" },
       "map": { "text": "Open in Google Maps", "url": "https://maps.app.goo.gl/ACgmMMcnBZhCT744A" },
       "privacy": { "text": "Privacy page", "url": "/privacy/" },
-      "thanksHome": { "text": "Back to the home page", "url": "/" }
+      "thanksHome": { "text": "Back to the home page", "url": "/" },
+      "messengerButton": { "text": "Message us on Facebook" },
+      "messengerDetails": { "text": "Message us on Messenger" }
     },
     "acupuncturePage": {
       "breadcrumbHome": { "text": "Home", "url": "/" },
@@ -166,7 +172,7 @@
   "hero": {
     "eyebrow": "Small-animal vets in Swatar, Malta",
     "title": "Gentle, thorough care for the pets you love",
-    "text": "Consultations, vaccinations, surgery and diagnostics, together with veterinary acupuncture with Dr. Teresa Gatt. Book online in under a minute."
+    "text": "Consultations, vaccinations, surgery and diagnostics, together with veterinary acupuncture. Book online in under a minute!"
   },
   "bookOnline": {
     "show": true,
@@ -248,7 +254,7 @@
       "name": "Dr. Andrew Cachia",
       "role": "Partner · Veterinary surgeon",
       "partner": true,
-      "bio": "[Placeholder bio] A short introduction to Dr. Andrew: where he trained, what he enjoys most about vet work, and the pets waiting for him at home.",
+      "bio": "",
       "photo": "dr-andrew",
       "photoAlt": "Dr. Andrew Cachia with a black-and-white dog on the examination table"
     },
@@ -256,7 +262,7 @@
       "name": "Dr. Teresa Gatt",
       "role": "Partner · Veterinary surgeon · TCVM acupuncture",
       "partner": true,
-      "bio": "[Placeholder bio] A short introduction to Dr. Teresa: where she trained, how she came to acupuncture, and the pets waiting for her at home.",
+      "bio": "",
       "photo": "dr-teresa",
       "photoAlt": "Dr. Teresa Gatt cuddling a fluffy puppy"
     },
@@ -264,7 +270,7 @@
       "name": "Dr. Adam",
       "role": "Veterinary surgeon",
       "partner": false,
-      "bio": "[Placeholder bio] A short introduction to Dr. Adam: where he trained, what he enjoys most about vet work, and why there is so often a cat on his shoulder.",
+      "bio": "",
       "photo": "dr-adam",
       "photoAlt": "Dr. Adam in purple scrubs with a kitten sitting on his shoulder"
     }
@@ -371,7 +377,7 @@
       "text": "Help with anxiety, aggression or sudden changes in behaviour."
     },
     {
-      "show": true,
+      "show": false,
       "title": "Acupuncture (TCVM)",
       "text": "Drug-free support for pain and mobility with Dr. Teresa Gatt.",
       "featured": true,
@@ -410,6 +416,7 @@
     "title": "Contact us",
     "intro": "Send us a message and we'll get back to you as soon as we can. To book an appointment, it's quickest to use online booking.",
     "urgentNote": "For anything urgent, please call us instead of sending a message:",
+    "messengerNote": "Prefer Messenger?",
     "formTitle": "Send us a message",
     "fields": {
       "name": "Your name",
