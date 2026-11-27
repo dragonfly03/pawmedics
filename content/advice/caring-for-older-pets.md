@@ -5,8 +5,10 @@ description: How to spot arthritis and other common problems in older dogs and c
 summary: The early signs of arthritis and other age-related problems, how often older pets need check-ups, and changes at home that help.
 category: Older pets
 pets: Dogs, cats
-photo: cat-acupuncture
-photoAlt: A tabby cat sitting calmly with acupuncture needles
+photo: advice-older-pets
+photoAlt: A grey-muzzled senior dog lying down and looking at the camera
+photoCredit: Michael on Unsplash
+photoCreditUrl: https://unsplash.com/photos/PVlnNm5RHSM
 date: 2026-11-27
 updated: 2026-11-27
 status: draft

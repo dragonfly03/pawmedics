@@ -5,8 +5,10 @@ description: Heatstroke can kill a dog in minutes. The warning signs, how to coo
 summary: How to prevent heatstroke, spot the warning signs, and cool your dog the right way before you travel to the vet.
 category: Seasonal
 pets: Dogs, cats, rabbits
-photo: dr-adam
-photoAlt: Dr. Adam in purple scrubs with a kitten sitting on his shoulder
+photo: advice-summer-heat
+photoAlt: A golden retriever cooling off under a spray of water on a sunny day
+photoCredit: Elisa Kennemer on Unsplash
+photoCreditUrl: https://unsplash.com/photos/0TdrHK0po7I
 date: 2026-11-27
 updated: 2026-11-27
 status: draft

@@ -5,8 +5,10 @@ description: Breathing trouble, collapse, a bloated belly or a cat straining to 
 summary: The signs that mean your pet needs a vet now, the ones that can wait until the next day, and who to call in Malta when we're closed.
 category: Emergencies
 pets: Dogs, cats
-photo: dr-andrew-at-work
-photoAlt: Dr. Andrew bandaging a black dog's leg while a colleague holds it
+photo: advice-emergency
+photoAlt: A vet in gloves treating a small black dog's paw on the examination table
+photoCredit: Alexander Mass on Unsplash
+photoCreditUrl: https://unsplash.com/photos/fQeLC7WlNm8
 date: 2026-11-27
 updated: 2026-11-27
 status: draft

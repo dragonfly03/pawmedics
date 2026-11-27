@@ -5,8 +5,10 @@ description: Chocolate, raisins, lilies and tinsel cause pet emergencies every C
 summary: The festive foods, plants and decorations that make dogs and cats ill, and what to do if your pet eats something it shouldn't.
 category: Seasonal
 pets: Dogs, cats
-photo: dr-teresa-at-work-2
-photoAlt: Dr. Teresa kneeling on the floor, giving treats to three cats
+photo: advice-christmas
+photoAlt: A black Labrador lying in front of a decorated Christmas tree with wrapped presents
+photoCredit: Dom Heartley on Unsplash
+photoCreditUrl: https://unsplash.com/photos/23U7kgeY5yg
 date: 2026-11-27
 updated: 2026-11-27
 status: draft

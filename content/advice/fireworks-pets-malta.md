@@ -5,8 +5,10 @@ description: Fireworks in Malta run from New Year through the festa season. How 
 summary: How to prepare a nervous dog or cat for fireworks, what helps on the night, and when to talk to us about medication.
 category: Behaviour
 pets: Dogs, cats, rabbits
-photo: dog-acupuncture
-photoAlt: A long-haired dog asleep during acupuncture
+photo: advice-fireworks
+photoAlt: A nervous corgi peeking out from under a wooden bed
+photoCredit: Yevhen Stienin on Unsplash
+photoCreditUrl: https://unsplash.com/photos/7gvzNlBhb8I
 date: 2026-11-27
 updated: 2026-11-27
 status: draft
